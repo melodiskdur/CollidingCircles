@@ -15,14 +15,14 @@ public:
     constexpr const GLfloat zoomVal() const { return m_zoom; };
     constexpr const GLfloat aspectRatio() const { return m_aspectRatio; };
     constexpr const glm::vec2 position() const { return m_position; };
-    constexpr const glm::vec2 dimensions() const { return m_dimensions; };
-    constexpr const glm::vec4 viewRect() { return glm::vec4(m_position, m_dimensions); };
-    glm::mat4 viewMatrix();
-    glm::mat4 projectionMatrix(const glm::vec2& dimensions);
+    constexpr const glm::vec2 dimensions() const { return m_dimensions / m_zoom; };
+    constexpr const glm::vec4 viewRect() { return glm::vec4(m_position, m_dimensions / m_zoom); };
+    glm::mat4 viewProjectionMatrix();
 
     void setZoom(const GLfloat& zoom);
     void setAspectRatio(const GLfloat& aspectRatio);
     void setPosition(const glm::vec2& position);
+    void setDimensions(const glm::vec2& dimensions);
     void move(const glm::vec2& dpos);
     void zoom(const GLfloat& zoom);
 

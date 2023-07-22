@@ -10,8 +10,9 @@ GridRenderer::~GridRenderer()
 
 }
 
-void GridRenderer::init()
+void GridRenderer::init(glm::vec2&& gridDimensions)
 {
+    m_gridDimensions = gridDimensions;
     generateGridVertices();
 
     glGenVertexArrays(1, &m_vao);
@@ -59,11 +60,11 @@ void GridRenderer::render()
 
 void GridRenderer::generateGridVertices()
 {
-    const float gridSize = 2.0f; // Size of the grid (in NDC)
-    const float gridSpacing = 0.2f; // Spacing between grid lines (in NDC)
+    const GLfloat gridSize{1.0f}; // Size of the grid (in NDC)
+    const glm::vec2 gridSpacing{ 2.f / m_gridDimensions.x, 2.f / m_gridDimensions.y };
 
     // Generate horizontal lines
-    for (float y = -gridSize; y <= gridSize; y += gridSpacing)
+    for (float y = -gridSize; y <= gridSize; y += gridSpacing.y)
     {
         m_gridVertices.push_back(-gridSize); // Start point (x-coordinate)
         m_gridVertices.push_back(y); // Start point (y-coordinate)
@@ -72,7 +73,7 @@ void GridRenderer::generateGridVertices()
     }
 
     // Generate vertical lines
-    for (float x = -gridSize; x <= gridSize; x += gridSpacing)
+    for (float x = -gridSize; x <= gridSize; x += gridSpacing.x)
     {
         m_gridVertices.push_back(x); // Start point (x-coordinate)
         m_gridVertices.push_back(-gridSize); // Start point (y-coordinate)

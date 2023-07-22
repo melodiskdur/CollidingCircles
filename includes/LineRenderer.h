@@ -17,7 +17,7 @@ public:
     ~LineRenderer();
 
     void init();
-    void render(const std::vector<LineObject>& lines, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix);
+    void render(const std::vector<LineObject>& lines, const glm::mat4& viewProjectionMatrix);
     std::shared_ptr<ShaderProgram> shaderProgram() const { return m_shaderProgram; };
 
 public:

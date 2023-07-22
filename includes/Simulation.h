@@ -47,6 +47,7 @@ public:
     void updateViewPosition(const glm::vec2& clickPos, const glm::vec2& currentPos);
     void setScreenDimensions(const GLuint& width, const GLuint& height);
     void onWindowResized(GLFWwindow* window, int w, int h);
+    void resizeWindow();
     void init();
     void run();
 
@@ -72,4 +73,5 @@ private:
 
     std::shared_ptr<LineRenderer>           m_lineRenderer{};
     std::vector<LineObject>                 m_lines{ };
+    std::vector<LineObject>                 m_worldBorder{ };
 };

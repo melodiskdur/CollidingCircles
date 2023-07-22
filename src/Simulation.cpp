@@ -18,17 +18,32 @@ static glm::vec3 CIRCLE_COLOR{ 0.99f, 0.2f, 0.0f };
 static GLfloat CIRCLE_RADIUS{ 1.0f };
 static GLfloat CIRCLE_MASS{ 1.0f };
 
+static GLuint rWidth{};
+static GLuint rHeight{};
+
 static bool STATIONARY_CHECKED{ false };
+
+static bool TO_RESIZE{ false };
 
 void stateBtnCallback()
 {
 	g_sim_state = g_sim_state == STATE::RUN ? STATE::STOP : STATE::RUN;
-	std::cout << "State changed\n";
 }
 
 void Simulation::onWindowResized(GLFWwindow* window, int w, int h)
 {
-	glViewport(0, 0, w, h);
+	TO_RESIZE = true;
+	rWidth = static_cast<GLuint>(w);
+	rHeight = static_cast<GLuint>(h);
+}
+
+void Simulation::resizeWindow()
+{
+	glViewport(0, 0, rWidth, rHeight);
+	m_width = rWidth;
+	m_height = rHeight;
+	m_view->setDimensions(glm::vec2(m_width, m_height));
+	TO_RESIZE = false;
 }
 
 Simulation::Simulation() : m_width(INIT_WIDTH), m_height(INIT_HEIGHT)
@@ -60,9 +75,10 @@ void Simulation::init()
 		exit(EXIT_FAILURE);
 	}
 
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-	m_window = glfwCreateWindow(INIT_WIDTH, INIT_HEIGHT, "Hello Circle", NULL, NULL);
+	m_window = glfwCreateWindow(INIT_WIDTH, INIT_HEIGHT, "Colliding Circles", NULL, NULL);
+
 	if (!m_window) {
 		glfwTerminate();
 		exit(EXIT_FAILURE);
@@ -79,7 +95,7 @@ void Simulation::init()
 	shaderProgram->linkAndUse();
 
 	m_gridRenderer = std::make_shared<GridRenderer>();
-	m_gridRenderer->init();
+	m_gridRenderer->init(glm::vec2(10, 10));
 
 	m_lineRenderer = std::make_shared<LineRenderer>();
 	m_lineRenderer->init();
@@ -110,14 +126,10 @@ void Simulation::init()
 			glm::vec2 w2wc{ windowToWorldCoordinates(currentPos) };
 			if (m_lines.size() == 0)
 			{
-				std::cout << "Line created \n";
 				m_lines.push_back(LineObject(glm::vec2(w2w), glm::vec2(w2wc), glm::vec3(CIRCLE_COLOR)));
 			}
 			else
 			{
-				//std::cout << "------------------------\n";
-				//std::cout << w2w.x << " " << w2w.y << "\n";
-				//std::cout << w2wc.x << " " << w2wc.y << "\n";
 				m_lines[0].setLine(glm::vec2(w2w), glm::vec2(w2wc));
 			}
 		});
@@ -138,14 +150,14 @@ void Simulation::init()
 			if (m_lines.size() > 0)
 			{
 				m_lines.pop_back();
-				std::cout << "Line destroyed\n";
 			}
 		}
 	);
 	m_inputManager->setScrollCallback(
 		[=](const glm::vec2& cursorPos, const GLfloat& zoom)
 		{
-			m_view->zoom(zoom);
+			GLfloat zoomVal{ zoom < 0 ? 0.90f : 1.10f };
+			m_view->zoom(zoomVal);
 		});
 
 
@@ -160,6 +172,8 @@ void Simulation::init()
 
 	m_world = std::make_shared<World>();
 	m_world->setWorldDimensions(WORLD_SIZE);
+
+	m_view->setPosition({-125.f, -125.f});
 
 	m_timeFlow = std::make_shared<TimeFlow>();
 	m_timeFlow->setDeltaTime(0.3f);
@@ -218,6 +232,16 @@ void Simulation::init()
 	m_collisionDetection->setGridSize(m_world->worldDimensions());
 	m_collisionDetection->setGridDimensions({ 20, 20 });
 	m_collisionDetection->init();
+
+	// World border.
+	glm::vec3 borderColor{ 1.0f, 0.0f, 0.0f };
+	m_worldBorder = std::vector<LineObject>
+	{
+		LineObject(glm::vec2(0.f), glm::vec2(0.f, m_world->worldDimensions().y), glm::vec3(borderColor)),
+		LineObject(glm::vec2(0.f, m_world->worldDimensions().y), glm::vec2(m_world->worldDimensions().x, m_world->worldDimensions().y), glm::vec3(borderColor)),
+		LineObject(glm::vec2(m_world->worldDimensions().x, m_world->worldDimensions().y), glm::vec2(m_world->worldDimensions().x, 0.f), glm::vec3(borderColor)),
+		LineObject(glm::vec2(m_world->worldDimensions().x, 0.f), glm::vec2(0.f), glm::vec3(borderColor))
+	};
 }
 
 void Simulation::run()
@@ -230,6 +254,9 @@ void Simulation::run()
 
     while (!glfwWindowShouldClose(m_window))
 	{
+		if (TO_RESIZE)
+			resizeWindow();
+
 		if (m_newCircles.size() > 0)
 		{
 			m_circles->insert(m_circles->end(), m_newCircles.begin(), m_newCircles.end());
@@ -247,6 +274,7 @@ void Simulation::run()
 		m_inputManager->handleInputEvents();
 
 		// ImGui frame.
+
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
@@ -273,14 +301,13 @@ void Simulation::run()
 			{
 				glm::vec2 halfScreen{ 0.5f * static_cast<GLfloat>(m_width), 0.5f * static_cast<GLfloat>(m_height) };
 				glm::mat4 modelMatrix{ glm::translate(glm::mat4(1.0f), glm::vec3(m_circles->at(i).pos(), 0.0f)) };
-				glm::mat4 projectionMatrix{ m_view->projectionMatrix(glm::vec2((GLfloat)m_width, (GLfloat)m_height)) };
-				glm::vec4 pos{ projectionMatrix * m_view->viewMatrix() * modelMatrix * glm::vec4(1.0f, 1.0f, 0.0f, 1.0f) };
+				glm::mat4 viewProjectionMatrix{ m_view->viewProjectionMatrix() };
+				glm::vec4 pos{ viewProjectionMatrix * modelMatrix * glm::vec4(1.0f, 1.0f, 0.0f, 1.0f) };
 				glm::vec2 ndc{ pos.x / pos.w, pos.y / pos.w };
 				positions[i] = { (ndc.x + 1.0f) * halfScreen.x, (ndc.y + 1.0f) * halfScreen.y };
 				radii[i] = m_view->zoomVal() * m_circles->at(i).radius();
 				colors[i] = m_circles->at(i).color();
 			}
-
 
 			auto shaderProgram { m_circleRenderer->shaderProgram() };
 			glUseProgram(shaderProgram->id());
@@ -295,16 +322,17 @@ void Simulation::run()
 			{
 				auto shaderProgram_grid{ m_gridRenderer->shaderProgram() };
 				glUseProgram( shaderProgram_grid->id() );
-				shaderProgram_grid->updateUniformMatrix4fv("viewMatrix", m_view->viewMatrix());
 				glm::mat4 modelMatrix{ glm::translate(glm::mat4(1.0f), glm::vec3(m_world->worldCenter(), 0.0f)) };
 				modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f * WORLD_SIZE, 0.0));
 				shaderProgram_grid->updateUniformMatrix4fv("modelMatrix", modelMatrix);
-				shaderProgram_grid->updateUniformMatrix4fv("projectionMatrix", m_view->projectionMatrix(glm::vec2((GLfloat)m_width, (GLfloat) m_height)));
+				shaderProgram_grid->updateUniformMatrix4fv("viewProjectionMatrix", m_view->viewProjectionMatrix());
 				m_gridRenderer->render();
 			}
 
 			if (m_lines.size() > 0)
-				m_lineRenderer->render(m_lines, m_view->viewMatrix(), m_view->projectionMatrix(glm::vec2((GLfloat)m_width, (GLfloat)m_height)));
+				m_lineRenderer->render(m_lines, m_view->viewProjectionMatrix());
+
+			m_lineRenderer->render(m_worldBorder, m_view->viewProjectionMatrix());
 		}
 
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -328,8 +356,11 @@ glm::vec2 Simulation::worldToWindowCoordinates(const glm::vec2& clickPos)
 
 glm::vec2 Simulation::windowToWorldCoordinates(const glm::vec2& clickPos)
 {
-	glm::vec2 dimensions{ 0.5f * glm::vec2((GLfloat)m_width, (GLfloat)m_height) };
-	glm::vec2 cCoords{ clickPos.x - dimensions.x, dimensions.y - clickPos.y };
-	glm::vec2 wCoords{ 1.0f / m_view->zoomVal() * 2.0f * (cCoords + m_view->position()) };
+	glm::vec2 dimensions{ glm::vec2((GLfloat)m_width, (GLfloat)m_height) };
+	glm::vec2 scaledDimensions{ m_view->dimensions() };
+	glm::vec2 screenCoords{ clickPos.x, dimensions.y - clickPos.y };
+	glm::vec2 scaledScreenCoords{ screenCoords.x * scaledDimensions.x / dimensions.x,  screenCoords.y * scaledDimensions.y / dimensions.y};
+	glm::vec2 offsetCoordinates{ m_view->position() };
+	glm::vec2 wCoords{ scaledScreenCoords + offsetCoordinates };
 	return wCoords;
 }

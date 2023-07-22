@@ -31,14 +31,13 @@ void LineRenderer::init()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void LineRenderer::render(const std::vector<LineObject>& lines, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix)
+void LineRenderer::render(const std::vector<LineObject>& lines, const glm::mat4& viewProjectionMatrix)
 {
 
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glUseProgram(m_shaderProgram->id());
-    m_shaderProgram->updateUniformMatrix4fv("viewMatrix", viewMatrix);
-    m_shaderProgram->updateUniformMatrix4fv("projectionMatrix", projectionMatrix);
+    m_shaderProgram->updateUniformMatrix4fv("viewProjectionMatrix", viewProjectionMatrix);
     std::for_each(lines.begin(), lines.end(), [=](const LineObject& line)
     {
         m_shaderProgram->updateUniformMatrix4fv("modelMatrix", line.modelMatrix());

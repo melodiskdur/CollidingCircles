@@ -13,26 +13,24 @@ View::View(const View& view)
 View::~View()
 { /* ... */}
 
-glm::mat4 View::viewMatrix()
+glm::mat4 View::viewProjectionMatrix()
 {
-    glm::mat4 viewMat{ glm::translate(glm::mat4(1.0f), glm::vec3(-m_position, 0.0f)) };
-    viewMat = glm::scale(viewMat, glm::vec3(m_zoom, m_zoom, 1.0f));
-    return viewMat;
-}
-
-glm::mat4 View::projectionMatrix(const glm::vec2& dimensions)
-{
-    return glm::ortho(m_position.x - dimensions.x,
-                    m_position.x + dimensions.x,
-                    m_position.y - dimensions.y,
-                    m_position.y + dimensions.y,
+    return glm::ortho(m_position.x,
+                    m_position.x + m_dimensions.x / m_zoom,
+                    m_position.y,
+                    m_position.y + m_dimensions.y / m_zoom,
                     -1.0f,
                     1.0f);
 }
 
 void View::setZoom(const GLfloat& zoom)
 {
-    m_zoom = std::min(50.0f, std::max(0.1f, zoom));
+    glm::vec2 dimBeforeZoom{ m_dimensions / m_zoom };
+    glm::vec2 center{ m_position + 0.5f * dimBeforeZoom };
+    m_zoom = std::min(50.0f, std::max(0.1f, m_zoom * zoom));
+    glm::vec2 dimAfterZoom{ m_dimensions / m_zoom };
+    glm::vec2 deltaDim{ dimAfterZoom - dimBeforeZoom };
+    m_position = center - 0.5f * dimAfterZoom;
 }
 
 void View::setAspectRatio(const GLfloat& aspectRatio)
@@ -45,12 +43,18 @@ void View::setPosition(const glm::vec2& position)
     m_position = position;
 }
 
+void View::setDimensions(const glm::vec2& dimensions)
+{
+    m_dimensions = dimensions;
+}
+
 void View::move(const glm::vec2& dpos)
 {
-    m_position += dpos;
+    m_position += dpos / m_zoom;
 }
 
 void View::zoom(const GLfloat& zoom)
 {
-    setZoom(m_zoom + 0.05f * zoom);
+    setZoom(zoom);
 }
+
