@@ -9,6 +9,7 @@ set(SOURCE_FILES
      src/ScreenObject.cpp
      src/LineObject.cpp
      src/CircleRenderer.cpp
+     src/CircleRendererInstanced.cpp
      src/LineRenderer.cpp
      src/CircleUniformBuffer.cpp
      src/ShaderProgram.cpp
@@ -23,7 +24,8 @@ set(SOURCE_FILES
      src/CircleCreatorMenu.cpp
      src/CollisionDetectionGrid.cpp
      src/GravityCalculator.cpp
-     src/GridRenderer.cpp)
+     src/GridRenderer.cpp
+     src/BloomRenderer.cpp)
 
 include_directories(
     ${CMAKE_SOURCE_DIR}/includes

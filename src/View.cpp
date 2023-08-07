@@ -27,7 +27,7 @@ void View::setZoom(const GLfloat& zoom)
 {
     glm::vec2 dimBeforeZoom{ m_dimensions / m_zoom };
     glm::vec2 center{ m_position + 0.5f * dimBeforeZoom };
-    m_zoom = std::min(50.0f, std::max(0.1f, m_zoom * zoom));
+    m_zoom = std::min(50.0f, std::max(0.01f, m_zoom * zoom));
     glm::vec2 dimAfterZoom{ m_dimensions / m_zoom };
     glm::vec2 deltaDim{ dimAfterZoom - dimBeforeZoom };
     m_position = center - 0.5f * dimAfterZoom;

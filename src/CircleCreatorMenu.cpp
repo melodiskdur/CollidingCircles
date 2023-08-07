@@ -20,6 +20,8 @@ void CircleCreatorMenu::draw()
     drawMassSelector();
     verticalSpacing(3);
     drawStationaryCheckBox();
+    verticalSpacing(3);
+    drawNumCircles();
 }
 
 void CircleCreatorMenu::drawHead() const
@@ -58,4 +60,9 @@ void CircleCreatorMenu::drawStationaryCheckBox()
 {
     if (ImGui::Checkbox(m_stationaryHeader.c_str(), &m_stationaryChecked) && m_stationaryCheckedCallback)
         m_stationaryCheckedCallback(m_stationaryChecked);
+}
+
+void CircleCreatorMenu::drawNumCircles()
+{
+    ImGui::Text("Number of circle: %d", *m_numCirclesReference);
 }

@@ -27,6 +27,7 @@ public:
     constexpr void setRadiusReference(GLfloat* r) { m_radiusReference = r; };
     constexpr void setMassReference(GLfloat* m) { m_massReference = m; };
     void setCheckboxStationaryCallback(const std::function<void(const bool&)>& callback) { m_stationaryCheckedCallback = callback; };
+    void setNumCirclesReference(GLsizei* nc) { m_numCirclesReference = nc; };
 
 private:
     void drawHead() const;
@@ -34,6 +35,7 @@ private:
     void drawRadiusSelector();
     void drawMassSelector();
     void drawStationaryCheckBox();
+    void drawNumCircles();
     constexpr void verticalSpacing(const std::size_t& n) const { for(auto i{0}; i < n; i++) ImGui::Spacing(); };
     constexpr void indent(const std::size_t& n) const { for (auto i{0}; i < n; i++) ImGui::Indent(); };
 
@@ -49,4 +51,6 @@ private:
     std::string                 m_stationaryHeader{ "Set Stationary" };
     bool                        m_stationaryChecked{ false };
     std::function<void(const bool&)>            m_stationaryCheckedCallback{};
+    std::string                 m_numCirclesHeader{ "Number of circles" };
+    GLsizei*                    m_numCirclesReference{};
 };

@@ -28,8 +28,8 @@ void World::generateCircles(const std::size_t& n)
 {
     std::srand(std::time(0));
 	m_circles->resize(n);
-    std::size_t iDim_x{ static_cast<std::size_t>(0.5f * m_worldDimensions.x) };
-    std::size_t iDim_y{ static_cast<std::size_t>(0.5f * m_worldDimensions.y) };
+    std::size_t iDim_x{ static_cast<std::size_t>(m_worldDimensions.x) };
+    std::size_t iDim_y{ static_cast<std::size_t>(m_worldDimensions.y) };
 	std::transform(m_circles->cbegin(), m_circles->cend(), m_circles->begin(),
 		[=](CircleObject c)
 		{
@@ -41,10 +41,11 @@ void World::generateCircles(const std::size_t& n)
 		{
 			c.setColor(1.0f / max * glm::vec3(std::rand() % max, std::rand() % max, std::rand() % max));
 			// c.setColor(glm::vec3(1.0f, 0.0f, 0.0f));
-			c.setRadius((std::rand() % 20) + 1);
+			c.setRadius(10 * ((std::rand() % 5) + 1));
 			c.setMass(c.radius());
 			GLfloat o{ static_cast<GLfloat>(std::rand() % 360) };
-			c.setVelocityVec(5.f * glm::vec2(std::cos(o / (2 * 3.14159f)), std::sin(o / (2 * 3.14159f))));
+			GLfloat velocitySpeed{ static_cast<GLfloat>(std::rand() % 50 + 1)  };
+			c.setVelocityVec(velocitySpeed * glm::vec2(std::cos(o / (2 * 3.14159f)), std::sin(o / (2 * 3.14159f))));
 			c.setPrevPos(c.pos() - c.velocityVec());
 		});
 }

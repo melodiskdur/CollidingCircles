@@ -43,6 +43,7 @@ public:
     void updateUniform1i(const std::string& uniformName, const GLint& uniformData) const;
     void updateUniform1f(const std::string& uniformName, const GLfloat& uniformData) const;
     void updateUniform1fv(const std::string& uniformName, const std::vector<GLfloat>& uniformData) const;
+    void updateUniform2f(const std::string& uniformName, const glm::vec2& uniformData) const;
     void updateUniform2fv(const std::string& uniformName, const std::vector<glm::vec2>& uniformData) const;
     void updateUniform3f(const std::string& uniformName, const glm::vec3& uniformData) const;
     void updateUniform3fv(const std::string& uniformName, const std::vector<glm::vec3>& uniformData) const;

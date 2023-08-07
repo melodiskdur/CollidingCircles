@@ -2,12 +2,13 @@
 #include "FlowControlMenu.h"
 #include "ShaderSettingsMenu.h"
 #include "CircleCreatorMenu.h"
+#include "CircleRenderData.h"
 #include <chrono>
 
 constexpr const GLuint INIT_WIDTH{ 1280 };
 constexpr const GLuint INIT_HEIGHT{ 720 };
 constexpr glm::vec2 WORLD_SIZE{ 10000.0f, 10000.0f };
-constexpr GLuint NUM_CIRCLES{ 100 };
+constexpr GLuint NUM_CIRCLES{ 1000000 };
 constexpr const float FRAME_LENGTH{ 1.0f / 60.0f };
 enum class STATE { RUN, STOP, STEP };
 
@@ -24,6 +25,8 @@ static GLuint rHeight{};
 static bool STATIONARY_CHECKED{ false };
 
 static bool TO_RESIZE{ false };
+
+static GLsizei N_CIRCLES{0};
 
 void stateBtnCallback()
 {
@@ -75,6 +78,10 @@ void Simulation::init()
 		exit(EXIT_FAILURE);
 	}
 
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
 	m_window = glfwCreateWindow(INIT_WIDTH, INIT_HEIGHT, "Colliding Circles", NULL, NULL);
@@ -84,8 +91,12 @@ void Simulation::init()
 		exit(EXIT_FAILURE);
 	}
     glfwMakeContextCurrent(m_window);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_ALWAYS);
     glewExperimental = GL_TRUE;
     glewInit();
+
+	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << "\n";
 
     std::shared_ptr<ShaderProgram> shaderProgram{ std::make_shared<ShaderProgram>(ShaderProgram()) };
 	shaderProgram->addShader(std::string{"simple_vtx"}, std::string("shader/simple.vert"), GL_VERTEX_SHADER);
@@ -107,6 +118,14 @@ void Simulation::init()
 	screenObject->setEBO(EBO);
     m_circleRenderer = std::make_shared<CircleRenderer>(CircleRenderer(shaderProgram, screenObject));
 	m_circleRenderer->init();
+
+	m_circleRendererInstanced = std::make_shared<CircleRendererInstanced>();
+	m_circleRendererInstanced->setViewportSize(m_width, m_height);
+	m_circleRendererInstanced->init();
+
+	m_bloomRenderer = std::make_shared<BloomRenderer>();
+	m_bloomRenderer->init();
+	m_bloomRenderer->initFBO(m_width, m_height);
 
     m_userInput = std::make_shared<UserInput>(UserInput(m_window));
 	m_inputManager = std::make_shared<InputManager>();
@@ -217,6 +236,7 @@ void Simulation::init()
 	circleCreator->setColorReference(&CIRCLE_COLOR);
 	circleCreator->setMassReference(&CIRCLE_MASS);
 	circleCreator->setRadiusReference(&CIRCLE_RADIUS);
+	circleCreator->setNumCirclesReference(&N_CIRCLES);
 	circleCreator->setCheckboxStationaryCallback([=](const bool& state)
 	{
 		STATIONARY_CHECKED = state;
@@ -225,7 +245,7 @@ void Simulation::init()
 
 	// Gravity.
 	m_gravity = std::make_shared<GravityCalculator>();
-	m_gravity->setGravitationalConstant(6.674e2f);
+	m_gravity->setGravitationalConstant(6.674e-7f);
 
 	// CollisionDetection.
 	m_collisionDetection = std::make_shared<CollisionDetectionGrid>();
@@ -246,10 +266,12 @@ void Simulation::init()
 
 void Simulation::run()
 {
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
 	std::chrono::duration<float> frameDuration(FRAME_LENGTH);
 	std::chrono::steady_clock::time_point prevTime{ std::chrono::steady_clock::now() };
 
-	//m_world->generateCircles(NUM_CIRCLES);
+	m_world->generateCircles(NUM_CIRCLES);
 	std::shared_ptr<std::vector<CircleObject>> m_circles{ m_world->circles() };
 
     while (!glfwWindowShouldClose(m_window))
@@ -262,9 +284,10 @@ void Simulation::run()
 			m_circles->insert(m_circles->end(), m_newCircles.begin(), m_newCircles.end());
 			m_newCircles.clear();
 		}
-		std::vector<GLfloat> radii(m_circles->size());
-		std::vector<glm::vec2> positions(m_circles->size());
-		std::vector<glm::vec3> colors(m_circles->size());
+
+		N_CIRCLES = m_circles->size();
+
+		std::vector<CircleRenderData> circleRenderData(m_circles->size());
 
 		std::chrono::steady_clock::time_point currentTime{ std::chrono::steady_clock::now() };
 		if ( std::chrono::duration<float>(currentTime - prevTime).count() < FRAME_LENGTH)
@@ -290,33 +313,58 @@ void Simulation::run()
 			if (g_sim_state != STATE::STOP)
 			{
 				m_timeFlow->updateTime();
-				m_gravity->applyForces(m_circles);
+				// m_gravity->applyForces(m_circles);
 				m_gravity->updateVelAndPos(m_circles, m_timeFlow->deltaTime());
-				m_collisionDetection->storeCirclesIntoGridCells(m_circles);
-				m_collisionDetection->detectCollisions();
-				m_collisionDetection->resolveCollisions(m_circles);
+				// m_collisionDetection->storeCirclesIntoGridCells(m_circles);
+				// m_collisionDetection->detectCollisions();
+				// m_collisionDetection->resolveCollisions(m_circles);
+
 			}
 
+			glm::vec2 halfScreen{ 0.5f * static_cast<GLfloat>(m_width), 0.5f * static_cast<GLfloat>(m_height) };
+			glm::mat4 viewProjectionMatrix{ m_view->viewProjectionMatrix() };
+
+			/*
 			for (int i = 0; i < m_circles->size(); i++)
 			{
-				glm::vec2 halfScreen{ 0.5f * static_cast<GLfloat>(m_width), 0.5f * static_cast<GLfloat>(m_height) };
 				glm::mat4 modelMatrix{ glm::translate(glm::mat4(1.0f), glm::vec3(m_circles->at(i).pos(), 0.0f)) };
-				glm::mat4 viewProjectionMatrix{ m_view->viewProjectionMatrix() };
 				glm::vec4 pos{ viewProjectionMatrix * modelMatrix * glm::vec4(1.0f, 1.0f, 0.0f, 1.0f) };
 				glm::vec2 ndc{ pos.x / pos.w, pos.y / pos.w };
-				positions[i] = { (ndc.x + 1.0f) * halfScreen.x, (ndc.y + 1.0f) * halfScreen.y };
-				radii[i] = m_view->zoomVal() * m_circles->at(i).radius();
-				colors[i] = m_circles->at(i).color();
+				circleRenderData[i] = CircleRenderData{
+					{ (ndc.x + 1.0f) * halfScreen.x, (ndc.y + 1.0f) * halfScreen.y },
+					m_circles->at(i).color(),
+					m_view->zoomVal() * m_circles->at(i).radius()
+					};
+			}
+			*/
+			// auto shaderProgram { m_circleRenderer->shaderProgram() };
+			// glUseProgram(shaderProgram->id());
+			// shaderProgram->updateUniform1i("shaderType", static_cast<GLint>(SHADER_TYPE));
+			// shaderProgram->updateUniform1i("num_circles", static_cast<GLint>(m_circles->size()));
+			// m_circleRenderer->render(circleRenderData);
+
+			for (int i{0}; i < m_circles->size(); i++)
+			{
+				GLfloat rad{ m_circles->at(i).radius() };
+				glm::mat4 modelMatrix{ glm::translate(glm::mat4(1.0f), glm::vec3(m_circles->at(i).pos(), 0.0f)) };
+				modelMatrix = glm::scale(modelMatrix, glm::vec3(rad, rad, 0.f));
+				glm::vec4 pos{ modelMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f) };
+				circleRenderData[i] = CircleRenderData{
+					m_circles->at(i).pos(),
+					m_circles->at(i).color(),
+					rad
+					};
 			}
 
-			auto shaderProgram { m_circleRenderer->shaderProgram() };
-			glUseProgram(shaderProgram->id());
-			shaderProgram->updateUniform1fv("radii", radii);
-			shaderProgram->updateUniform2fv("positions", positions);
-			shaderProgram->updateUniform3fv("colors", colors);
-			shaderProgram->updateUniform1i("shaderType", static_cast<GLint>(SHADER_TYPE));
-			shaderProgram->updateUniform1i("num_circles", static_cast<GLint>(m_circles->size()));
-			m_circleRenderer->render(*m_circles);
+			m_circleRendererInstanced->setOutputFBO(m_bloomRenderer->inputFBO());
+			m_circleRendererInstanced->setOutputFBOTextures(m_bloomRenderer->inputFBOSceneTex(), m_bloomRenderer->inputFBOBloomTex());
+
+			auto shaderProgram_cren{ m_circleRendererInstanced->shaderProgram() };
+			glUseProgram(shaderProgram_cren->id());
+			shaderProgram_cren->updateUniformMatrix4fv("viewProjectionMatrix", viewProjectionMatrix);
+			m_circleRendererInstanced->render(circleRenderData);
+
+			m_bloomRenderer->render();
 
 			if (m_gridRenderer->isGridEnabled())
 			{

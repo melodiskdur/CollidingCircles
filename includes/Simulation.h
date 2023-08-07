@@ -24,6 +24,7 @@
 
 #include "CircleObject.h"
 #include "CircleRenderer.h"
+#include "BloomRenderer.h"
 #include "ScreenObject.h"
 #include "ShaderProgram.h"
 #include "InputManager.h"
@@ -37,6 +38,7 @@
 #include "TimeFlow.h"
 #include "LineObject.h"
 #include "LineRenderer.h"
+#include "CircleRendererInstanced.h"
 
 class Simulation
 {
@@ -56,22 +58,26 @@ private:
     glm::vec2 windowToWorldCoordinates(const glm::vec2& clickPos);
 
 private:
-    GLFWwindow*                             m_window{};
-    std::deque<CircleObject>                m_newCircles{};
-    std::shared_ptr<View>                   m_view{};
-    std::shared_ptr<World>                  m_world{};
-    std::shared_ptr<CollisionDetectionGrid> m_collisionDetection{};
-    std::shared_ptr<GravityCalculator>      m_gravity{};
-    std::shared_ptr<TimeFlow>               m_timeFlow{};
-    std::shared_ptr<CircleRenderer>         m_circleRenderer{};
-    std::shared_ptr<GridRenderer>           m_gridRenderer{};
-    std::shared_ptr<InputManager>           m_inputManager{};
-    std::shared_ptr<UserInput>              m_userInput{};
-    std::shared_ptr<SettingsWindow>         m_settingsWindow{};
-    GLuint                                  m_width{};
-    GLuint                                  m_height{};
+    GLFWwindow*                                 m_window{};
+    std::deque<CircleObject>                    m_newCircles{};
+    std::shared_ptr<View>                       m_view{};
+    std::shared_ptr<World>                      m_world{};
+    std::shared_ptr<CollisionDetectionGrid>     m_collisionDetection{};
+    std::shared_ptr<GravityCalculator>          m_gravity{};
+    std::shared_ptr<TimeFlow>                   m_timeFlow{};
+    std::shared_ptr<CircleRenderer>             m_circleRenderer{};
+    std::shared_ptr<BloomRenderer>              m_bloomRenderer{};
+    std::shared_ptr<GridRenderer>               m_gridRenderer{};
+    std::shared_ptr<InputManager>               m_inputManager{};
+    std::shared_ptr<UserInput>                  m_userInput{};
+    std::shared_ptr<SettingsWindow>             m_settingsWindow{};
+    GLuint                                      m_width{};
+    GLuint                                      m_height{};
 
-    std::shared_ptr<LineRenderer>           m_lineRenderer{};
-    std::vector<LineObject>                 m_lines{ };
-    std::vector<LineObject>                 m_worldBorder{ };
+    std::shared_ptr<LineRenderer>               m_lineRenderer{};
+    std::vector<LineObject>                     m_lines{ };
+    std::vector<LineObject>                     m_worldBorder{ };
+
+    std::shared_ptr<CircleRendererInstanced>    m_circleRendererInstanced{};
+
 };

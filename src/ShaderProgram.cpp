@@ -70,6 +70,12 @@ void ShaderProgram::updateUniform1fv(const std::string& uniformName, const std::
     glUniform1fv(uLocation, uniformData.size(), uniformData.data());
 }
 
+void ShaderProgram::updateUniform2f(const std::string& uniformName, const glm::vec2& uniformData) const
+{
+	GLint uLocation{ glGetUniformLocation(m_programid, uniformName.data()) };
+    glUniform2f(uLocation, uniformData.x, uniformData.y);
+}
+
 void ShaderProgram::updateUniform2fv(const std::string& uniformName, const std::vector<glm::vec2>& uniformData) const
 {
     GLint uLocation{ glGetUniformLocation(m_programid, uniformName.data()) };
