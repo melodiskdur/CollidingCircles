@@ -11,7 +11,7 @@
 
 #include "ShaderProgram.h"
 
-constexpr GLsizei NUM_MIPS{ 5 };
+constexpr GLsizei NUM_MIPS{ 7 };
 
 struct BloomMipmap
 {
@@ -29,10 +29,13 @@ public:
     void init();
     void initFBO(const GLsizei& screenWidth, const GLsizei& screenHeight);
     void render();
+    void resizeTextures();
 
     const GLuint& inputFBO() const { return m_inputFBO; };
     const GLuint& inputFBOSceneTex() const { return m_inputFBOSceneTex; };
     const GLuint& inputFBOBloomTex() const { return m_inputFBOBloomTex; };
+
+    constexpr void setViewportSize(const GLsizei& width, const GLsizei& height) { m_viewportSize = { width, height }; };
 
 private:
     void downsample();

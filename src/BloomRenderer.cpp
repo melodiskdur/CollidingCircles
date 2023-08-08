@@ -52,13 +52,12 @@ void BloomRenderer::initFBO(const GLsizei& screenWidth, const GLsizei& screenHei
     glBindFramebuffer(GL_FRAMEBUFFER, m_bloomFBO);
 
     glm::vec2 mipSize((float)m_viewportSize.x, (float)m_viewportSize.y);
-    glm::ivec2 mipIntSize((int)m_viewportSize.x, (int)m_viewportSize.y);
+
     for (unsigned int i = 0; i < NUM_MIPS; i++)
     {
         BloomMipmap mip;
 
         mipSize *= 0.5f;
-        mipIntSize /= 2;
         mip.m_texSize = mipSize;
 
         glGenTextures(1, &mip.m_texture);
@@ -107,6 +106,33 @@ void BloomRenderer::render()
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
     glUseProgram(0);
+}
+
+void BloomRenderer::resizeTextures()
+{
+    glBindTexture(GL_TEXTURE_2D, m_inputFBOSceneTex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, m_viewportSize.x, m_viewportSize.y, 0,  GL_RGB, GL_FLOAT, nullptr);
+
+    glBindTexture(GL_TEXTURE_2D, m_inputFBOBloomTex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, m_viewportSize.x, m_viewportSize.y, 0,  GL_RGB, GL_FLOAT, nullptr);
+
+    // Mipmaps.
+    glm::vec2 mipSize((float)m_viewportSize.x, (float)m_viewportSize.y);
+    for (unsigned int i = 0; i < NUM_MIPS; i++)
+    {
+        BloomMipmap& mip { m_bloomFBOBloomMipmaps[i] };
+
+        mipSize *= 0.5f;
+        mip.m_texSize = mipSize;
+
+        glBindTexture(GL_TEXTURE_2D, mip.m_texture);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R11F_G11F_B10F,
+                     (int)mipSize.x, (int)mipSize.y,
+                     0, GL_RGB, GL_FLOAT, nullptr);
+    }
+
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void BloomRenderer::downsample()

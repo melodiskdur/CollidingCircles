@@ -8,7 +8,7 @@
 constexpr const GLuint INIT_WIDTH{ 1280 };
 constexpr const GLuint INIT_HEIGHT{ 720 };
 constexpr glm::vec2 WORLD_SIZE{ 10000.0f, 10000.0f };
-constexpr GLuint NUM_CIRCLES{ 1000000 };
+constexpr GLuint NUM_CIRCLES{ 0 };
 constexpr const float FRAME_LENGTH{ 1.0f / 60.0f };
 enum class STATE { RUN, STOP, STEP };
 
@@ -46,6 +46,8 @@ void Simulation::resizeWindow()
 	m_width = rWidth;
 	m_height = rHeight;
 	m_view->setDimensions(glm::vec2(m_width, m_height));
+	m_bloomRenderer->setViewportSize(m_width, m_height);
+	m_bloomRenderer->resizeTextures();
 	TO_RESIZE = false;
 }
 
@@ -72,196 +74,41 @@ void Simulation::updateViewPosition(const glm::vec2& clickPos, const glm::vec2& 
 
 void Simulation::init()
 {
-	if (!glfwInit())
+	if (!this->initializeGLContext())
 	{
-		glfwTerminate();
+		std::cerr << "Simulation::init(): Failed to initialize OpenGL and GLFW context (Simulation::initializeGLContext()).\n";
 		exit(EXIT_FAILURE);
 	}
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-
-	m_window = glfwCreateWindow(INIT_WIDTH, INIT_HEIGHT, "Colliding Circles", NULL, NULL);
-
-	if (!m_window) {
-		glfwTerminate();
+	if (!this->initializeRenderers())
+	{
 		exit(EXIT_FAILURE);
 	}
-    glfwMakeContextCurrent(m_window);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_ALWAYS);
-    glewExperimental = GL_TRUE;
-    glewInit();
 
-	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << "\n";
-
-    std::shared_ptr<ShaderProgram> shaderProgram{ std::make_shared<ShaderProgram>(ShaderProgram()) };
-	shaderProgram->addShader(std::string{"simple_vtx"}, std::string("shader/simple.vert"), GL_VERTEX_SHADER);
-	shaderProgram->addShader(std::string{"simple_frag"}, std::string("shader/simple.frag"), GL_FRAGMENT_SHADER);
-	shaderProgram->combineShadersIntoPair("simple_vtx", "simple_frag");
-	shaderProgram->setCurrentShaderPair("simple_vtx", "simple_frag");
-	shaderProgram->linkAndUse();
-
-	m_gridRenderer = std::make_shared<GridRenderer>();
-	m_gridRenderer->init(glm::vec2(10, 10));
-
-	m_lineRenderer = std::make_shared<LineRenderer>();
-	m_lineRenderer->init();
-
-    std::shared_ptr<ScreenObject> screenObject{ std::make_shared<ScreenObject>(ScreenObject(m_width, m_height)) };
-    GLuint EBO;
-	glGenBuffers(1, &EBO);
-	screenObject->initialize();
-	screenObject->setEBO(EBO);
-    m_circleRenderer = std::make_shared<CircleRenderer>(CircleRenderer(shaderProgram, screenObject));
-	m_circleRenderer->init();
-
-	m_circleRendererInstanced = std::make_shared<CircleRendererInstanced>();
-	m_circleRendererInstanced->setViewportSize(m_width, m_height);
-	m_circleRendererInstanced->init();
-
-	m_bloomRenderer = std::make_shared<BloomRenderer>();
-	m_bloomRenderer->init();
-	m_bloomRenderer->initFBO(m_width, m_height);
-
-    m_userInput = std::make_shared<UserInput>(UserInput(m_window));
-	m_inputManager = std::make_shared<InputManager>();
-	m_inputManager->setUserInput(m_userInput);
-	m_inputManager->setRightClickDragCallback(
-		[=](const glm::vec2& clickPos, const glm::vec2& cursorPos, const glm::vec2& prevCursorPos)
-		{
-			glm::vec2 w2wc{ worldToWindowCoordinates(cursorPos) };
-			glm::vec2 w2wpc{ worldToWindowCoordinates(prevCursorPos) };
-			m_view->move(glm::vec2(w2wpc.x, w2wpc.y) - glm::vec2(w2wc.x, w2wc.y));
-		});
-
-	m_inputManager->setLeftClickDragCallback(
-		[=](const glm::vec2& clickPos, const glm::vec2& currentPos, const glm::vec2& dpos)
-		{
-			glm::vec2 w2w{ windowToWorldCoordinates(clickPos) };
-			glm::vec2 w2wc{ windowToWorldCoordinates(currentPos) };
-			if (m_lines.size() == 0)
-			{
-				m_lines.push_back(LineObject(glm::vec2(w2w), glm::vec2(w2wc), glm::vec3(CIRCLE_COLOR)));
-			}
-			else
-			{
-				m_lines[0].setLine(glm::vec2(w2w), glm::vec2(w2wc));
-			}
-		});
-
-	m_inputManager->setLeftClickReleaseCallback(
-		[=](const glm::vec2& clickPos, const glm::vec2& cursorPos)
-		{
-			glm::vec2 w2w{ windowToWorldCoordinates(clickPos) };
-			glm::vec2 w2wc{ windowToWorldCoordinates(cursorPos) };
-			glm::vec2 velocity{ 1e-2f * (w2w - w2wc) };
-			CircleObject newObj(glm::vec2(w2w), glm::vec3{CIRCLE_COLOR}, std::move(velocity));
-			newObj.setRadius(std::move(GLfloat{CIRCLE_RADIUS}));
-			newObj.setMass(std::move(GLfloat{CIRCLE_MASS}));
-			if (STATIONARY_CHECKED)
-				newObj.setStationary(STATIONARY_CHECKED);
-
-			m_newCircles.push_back(newObj);
-			if (m_lines.size() > 0)
-			{
-				m_lines.pop_back();
-			}
-		}
-	);
-	m_inputManager->setScrollCallback(
-		[=](const glm::vec2& cursorPos, const GLfloat& zoom)
-		{
-			GLfloat zoomVal{ zoom < 0 ? 0.90f : 1.10f };
-			m_view->zoom(zoomVal);
-		});
-
-
-	auto f_onWindowResized{[](GLFWwindow* window, int w, int h)
-    {
-        static_cast<Simulation*>(glfwGetWindowUserPointer(window))->onWindowResized(window, w, h);
-    }};
-
-	glfwSetFramebufferSizeCallback(m_window, f_onWindowResized);
-
-	m_view = std::make_shared<View>(glm::vec2(static_cast<GLfloat>(m_width), static_cast<GLfloat>(m_height)));
-
-	m_world = std::make_shared<World>();
-	m_world->setWorldDimensions(WORLD_SIZE);
-
-	m_view->setPosition({-125.f, -125.f});
-
-	m_timeFlow = std::make_shared<TimeFlow>();
-	m_timeFlow->setDeltaTime(0.3f);
-
-	// Initialize ImGui.
-	ImGui::CreateContext();
-	ImGui::StyleColorsDark();
-	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
-	ImGui_ImplOpenGL3_Init("#version 330");
-	m_settingsWindow = std::make_shared<SettingsWindow>(SettingsWindow());
-	// FlowControl.
-	std::shared_ptr<FlowControlMenu> flowControl{ std::make_shared<FlowControlMenu>() };
-	flowControl->setTimestepReference(m_timeFlow->deltaTimeReference());
-	flowControl->setSimulationTimeReference(m_timeFlow->timeReference());
-	flowControl->setBtnStateCallback(std::function<void()>(stateBtnCallback));
-	flowControl->setBtnResetCallback([=]()
+	if (!this->initializeEnvironmentParams())
 	{
-		m_world->circles()->clear();
-		m_timeFlow->resetTime();
-	});
-	flowControl->setBtnStepForwardCallback([=]()
-	{
-		g_sim_state = STATE::STEP;
-	});
-	m_settingsWindow->addMenu(flowControl);
+		exit(EXIT_FAILURE);
+	}
 
-	// ShaderSettings.
-	std::shared_ptr<ShaderSettingsMenu> shaderSettings{ std::make_shared<ShaderSettingsMenu>() };
-	shaderSettings->setCheckboxDisplayGridCallback([=](const bool& state)
+	if (!this->initializeInput())
 	{
-		m_gridRenderer->toggleGrid(state);
-	});
-	shaderSettings->setSelectShaderTypeCallback([=](const std::size_t &i)
+		exit(EXIT_FAILURE);
+	}
+
+	if (!this->initializePhysics())
 	{
-		SHADER_TYPE = i;
-	});
-	m_settingsWindow->addMenu(shaderSettings);
+		exit(EXIT_FAILURE);
+	}
 
-	// Circle Creator.
-	std::shared_ptr<CircleCreatorMenu> circleCreator{ std::make_shared<CircleCreatorMenu>() };
-	circleCreator->setColorReference(&CIRCLE_COLOR);
-	circleCreator->setMassReference(&CIRCLE_MASS);
-	circleCreator->setRadiusReference(&CIRCLE_RADIUS);
-	circleCreator->setNumCirclesReference(&N_CIRCLES);
-	circleCreator->setCheckboxStationaryCallback([=](const bool& state)
+	if (!this->initializeImGui())
 	{
-		STATIONARY_CHECKED = state;
-	});
-	m_settingsWindow->addMenu(circleCreator);
+		exit(EXIT_FAILURE);
+	}
 
-	// Gravity.
-	m_gravity = std::make_shared<GravityCalculator>();
-	m_gravity->setGravitationalConstant(6.674e-7f);
-
-	// CollisionDetection.
-	m_collisionDetection = std::make_shared<CollisionDetectionGrid>();
-	m_collisionDetection->setGridSize(m_world->worldDimensions());
-	m_collisionDetection->setGridDimensions({ 20, 20 });
-	m_collisionDetection->init();
-
-	// World border.
-	glm::vec3 borderColor{ 1.0f, 0.0f, 0.0f };
-	m_worldBorder = std::vector<LineObject>
+	if (!this->initializeSettingsMenus())
 	{
-		LineObject(glm::vec2(0.f), glm::vec2(0.f, m_world->worldDimensions().y), glm::vec3(borderColor)),
-		LineObject(glm::vec2(0.f, m_world->worldDimensions().y), glm::vec2(m_world->worldDimensions().x, m_world->worldDimensions().y), glm::vec3(borderColor)),
-		LineObject(glm::vec2(m_world->worldDimensions().x, m_world->worldDimensions().y), glm::vec2(m_world->worldDimensions().x, 0.f), glm::vec3(borderColor)),
-		LineObject(glm::vec2(m_world->worldDimensions().x, 0.f), glm::vec2(0.f), glm::vec3(borderColor))
-	};
+		exit(EXIT_FAILURE);
+	}
 }
 
 void Simulation::run()
@@ -313,35 +160,16 @@ void Simulation::run()
 			if (g_sim_state != STATE::STOP)
 			{
 				m_timeFlow->updateTime();
-				// m_gravity->applyForces(m_circles);
+				m_gravity->applyForces(m_circles);
 				m_gravity->updateVelAndPos(m_circles, m_timeFlow->deltaTime());
-				// m_collisionDetection->storeCirclesIntoGridCells(m_circles);
-				// m_collisionDetection->detectCollisions();
-				// m_collisionDetection->resolveCollisions(m_circles);
+				m_collisionDetection->storeCirclesIntoGridCells(m_circles);
+				m_collisionDetection->detectCollisions();
+				m_collisionDetection->resolveCollisions(m_circles);
 
 			}
 
 			glm::vec2 halfScreen{ 0.5f * static_cast<GLfloat>(m_width), 0.5f * static_cast<GLfloat>(m_height) };
 			glm::mat4 viewProjectionMatrix{ m_view->viewProjectionMatrix() };
-
-			/*
-			for (int i = 0; i < m_circles->size(); i++)
-			{
-				glm::mat4 modelMatrix{ glm::translate(glm::mat4(1.0f), glm::vec3(m_circles->at(i).pos(), 0.0f)) };
-				glm::vec4 pos{ viewProjectionMatrix * modelMatrix * glm::vec4(1.0f, 1.0f, 0.0f, 1.0f) };
-				glm::vec2 ndc{ pos.x / pos.w, pos.y / pos.w };
-				circleRenderData[i] = CircleRenderData{
-					{ (ndc.x + 1.0f) * halfScreen.x, (ndc.y + 1.0f) * halfScreen.y },
-					m_circles->at(i).color(),
-					m_view->zoomVal() * m_circles->at(i).radius()
-					};
-			}
-			*/
-			// auto shaderProgram { m_circleRenderer->shaderProgram() };
-			// glUseProgram(shaderProgram->id());
-			// shaderProgram->updateUniform1i("shaderType", static_cast<GLint>(SHADER_TYPE));
-			// shaderProgram->updateUniform1i("num_circles", static_cast<GLint>(m_circles->size()));
-			// m_circleRenderer->render(circleRenderData);
 
 			for (int i{0}; i < m_circles->size(); i++)
 			{
@@ -394,6 +222,239 @@ void Simulation::run()
 	// close GL context and any other GLFW resources
 	glfwTerminate();
 	exit(EXIT_SUCCESS);
+}
+
+[[nodiscard]] bool Simulation::initializeGLContext()
+{
+	if (!glfwInit())
+	{
+		glfwTerminate();
+		return false;
+	}
+
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
+	m_window = glfwCreateWindow(INIT_WIDTH, INIT_HEIGHT, "Colliding Circles", NULL, NULL);
+
+	if (!m_window) {
+		glfwTerminate();
+		return false;
+	}
+
+    glfwMakeContextCurrent(m_window);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_ALWAYS);
+    glewExperimental = GL_TRUE;
+    glewInit();
+
+	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << "\n";
+
+	auto f_onWindowResized{[](GLFWwindow* window, int w, int h)
+    {
+        static_cast<Simulation*>(glfwGetWindowUserPointer(window))->onWindowResized(window, w, h);
+    }};
+
+	glfwSetFramebufferSizeCallback(m_window, f_onWindowResized);
+
+	return true;
+}
+
+[[nodiscard]] bool Simulation::initializeRenderers()
+{
+	m_gridRenderer = std::make_shared<GridRenderer>();
+	m_gridRenderer->init(glm::vec2(10, 10));
+
+	m_lineRenderer = std::make_shared<LineRenderer>();
+	m_lineRenderer->init();
+
+	m_circleRendererInstanced = std::make_shared<CircleRendererInstanced>();
+	m_circleRendererInstanced->setViewportSize(m_width, m_height);
+	m_circleRendererInstanced->init();
+
+	m_bloomRenderer = std::make_shared<BloomRenderer>();
+	m_bloomRenderer->init();
+	m_bloomRenderer->initFBO(m_width, m_height);
+
+	return true;
+}
+
+[[nodiscard]] bool Simulation::initializeEnvironmentParams()
+{
+	m_view = std::make_shared<View>(glm::vec2(static_cast<GLfloat>(m_width), static_cast<GLfloat>(m_height)));
+	m_view->setPosition({-125.f, -125.f});
+	m_world = std::make_shared<World>();
+	m_world->setWorldDimensions(WORLD_SIZE);
+	m_timeFlow = std::make_shared<TimeFlow>();
+	m_timeFlow->setDeltaTime(0.3f);
+
+	// World border.
+	glm::vec3 borderColor{ 1.0f, 0.0f, 0.0f };
+	m_worldBorder = std::vector<LineObject>
+	{
+		LineObject(glm::vec2(0.f), glm::vec2(0.f, m_world->worldDimensions().y), glm::vec3(borderColor)),
+		LineObject(glm::vec2(0.f, m_world->worldDimensions().y), glm::vec2(m_world->worldDimensions().x, m_world->worldDimensions().y), glm::vec3(borderColor)),
+		LineObject(glm::vec2(m_world->worldDimensions().x, m_world->worldDimensions().y), glm::vec2(m_world->worldDimensions().x, 0.f), glm::vec3(borderColor)),
+		LineObject(glm::vec2(m_world->worldDimensions().x, 0.f), glm::vec2(0.f), glm::vec3(borderColor))
+	};
+
+	return true;
+}
+
+[[nodiscard]] bool Simulation::initializeInput()
+{
+	m_userInput = std::make_shared<UserInput>(UserInput(m_window));
+	m_inputManager = std::make_shared<InputManager>();
+	m_inputManager->setUserInput(m_userInput);
+	setupMouseInputCallbacks();
+	setupScrollInputCallbacks();
+
+	return true;
+}
+
+[[nodiscard]] bool Simulation::initializePhysics()
+{
+	// Gravity.
+	m_gravity = std::make_shared<GravityCalculator>();
+	m_gravity->setGravitationalConstant(6.674e2f);
+
+	// CollisionDetection.
+	m_collisionDetection = std::make_shared<CollisionDetectionGrid>();
+	m_collisionDetection->setGridSize(m_world->worldDimensions());
+	m_collisionDetection->setGridDimensions({ 20, 20 });
+	m_collisionDetection->init();
+
+	return true;
+}
+
+[[nodiscard]] bool Simulation::initializeImGui()
+{
+	// Initialize ImGui.
+	ImGui::CreateContext();
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
+	ImGui_ImplOpenGL3_Init("#version 330");
+	return true;
+}
+
+[[nodiscard]] bool Simulation::initializeSettingsMenus()
+{
+	m_settingsWindow = std::make_shared<SettingsWindow>(SettingsWindow());
+
+	// FlowControl.
+	std::shared_ptr<FlowControlMenu> flowControl{ std::make_shared<FlowControlMenu>() };
+	setupFlowControlMenuCallbacks(flowControl);
+	m_settingsWindow->addMenu(flowControl);
+
+	// ShaderSettings.
+	std::shared_ptr<ShaderSettingsMenu> shaderSettings{ std::make_shared<ShaderSettingsMenu>() };
+	setupShaderSettingsMenuCallbacks(shaderSettings);
+	m_settingsWindow->addMenu(shaderSettings);
+
+	// Circle Creator.
+	std::shared_ptr<CircleCreatorMenu> circleCreator{ std::make_shared<CircleCreatorMenu>() };
+	setupCircleCreatorMenuCallbacks(circleCreator);
+	m_settingsWindow->addMenu(circleCreator);
+	return true;
+}
+
+void Simulation::setupMouseInputCallbacks()
+{
+	m_inputManager->setRightClickDragCallback(
+		[=](const glm::vec2& clickPos, const glm::vec2& cursorPos, const glm::vec2& prevCursorPos)
+		{
+			glm::vec2 w2wc{ worldToWindowCoordinates(cursorPos) };
+			glm::vec2 w2wpc{ worldToWindowCoordinates(prevCursorPos) };
+			m_view->move(glm::vec2(w2wpc.x, w2wpc.y) - glm::vec2(w2wc.x, w2wc.y));
+		});
+
+	m_inputManager->setLeftClickDragCallback(
+		[=](const glm::vec2& clickPos, const glm::vec2& currentPos, const glm::vec2& dpos)
+		{
+			glm::vec2 w2w{ windowToWorldCoordinates(clickPos) };
+			glm::vec2 w2wc{ windowToWorldCoordinates(currentPos) };
+			if (m_lines.size() == 0)
+			{
+				m_lines.push_back(LineObject(glm::vec2(w2w), glm::vec2(w2wc), glm::vec3(CIRCLE_COLOR)));
+			}
+			else
+			{
+				m_lines[0].setLine(glm::vec2(w2w), glm::vec2(w2wc));
+			}
+		});
+
+	m_inputManager->setLeftClickReleaseCallback(
+		[=](const glm::vec2& clickPos, const glm::vec2& cursorPos)
+		{
+			glm::vec2 w2w{ windowToWorldCoordinates(clickPos) };
+			glm::vec2 w2wc{ windowToWorldCoordinates(cursorPos) };
+			glm::vec2 velocity{ 1e-2f * (w2w - w2wc) };
+			CircleObject newObj(glm::vec2(w2w), glm::vec3{CIRCLE_COLOR}, std::move(velocity));
+			newObj.setRadius(std::move(GLfloat{CIRCLE_RADIUS}));
+			newObj.setMass(std::move(GLfloat{CIRCLE_MASS}));
+			if (STATIONARY_CHECKED)
+				newObj.setStationary(STATIONARY_CHECKED);
+
+			m_newCircles.push_back(newObj);
+			if (m_lines.size() > 0)
+			{
+				m_lines.pop_back();
+			}
+		}
+	);
+}
+
+void Simulation::setupScrollInputCallbacks()
+{
+	m_inputManager->setScrollCallback(
+		[=](const glm::vec2& cursorPos, const GLfloat& zoom)
+		{
+			GLfloat zoomVal{ zoom < 0 ? 0.90f : 1.10f };
+			m_view->zoom(zoomVal);
+		});
+}
+
+void Simulation::setupFlowControlMenuCallbacks(std::shared_ptr<FlowControlMenu> flowControl)
+{
+	flowControl->setTimestepReference(m_timeFlow->deltaTimeReference());
+	flowControl->setSimulationTimeReference(m_timeFlow->timeReference());
+	flowControl->setBtnStateCallback(std::function<void()>(stateBtnCallback));
+	flowControl->setBtnResetCallback([=]()
+	{
+		m_world->circles()->clear();
+		m_timeFlow->resetTime();
+	});
+	flowControl->setBtnStepForwardCallback([=]()
+	{
+		g_sim_state = STATE::STEP;
+	});
+}
+
+void Simulation::setupShaderSettingsMenuCallbacks(std::shared_ptr<ShaderSettingsMenu> shaderSettings)
+{
+	shaderSettings->setCheckboxDisplayGridCallback([=](const bool& state)
+	{
+		m_gridRenderer->toggleGrid(state);
+	});
+	shaderSettings->setSelectShaderTypeCallback([=](const std::size_t &i)
+	{
+		SHADER_TYPE = i;
+	});
+}
+
+void Simulation::setupCircleCreatorMenuCallbacks(std::shared_ptr<CircleCreatorMenu> circleCreator)
+{
+	circleCreator->setColorReference(&CIRCLE_COLOR);
+	circleCreator->setMassReference(&CIRCLE_MASS);
+	circleCreator->setRadiusReference(&CIRCLE_RADIUS);
+	circleCreator->setNumCirclesReference(&N_CIRCLES);
+	circleCreator->setCheckboxStationaryCallback([=](const bool& state)
+	{
+		STATIONARY_CHECKED = state;
+	});
 }
 
 glm::vec2 Simulation::worldToWindowCoordinates(const glm::vec2& clickPos)

@@ -39,6 +39,9 @@
 #include "LineObject.h"
 #include "LineRenderer.h"
 #include "CircleRendererInstanced.h"
+#include "FlowControlMenu.h"
+#include "ShaderSettingsMenu.h"
+#include "CircleCreatorMenu.h"
 
 class Simulation
 {
@@ -54,6 +57,20 @@ public:
     void run();
 
 private:
+    [[nodiscard]] bool initializeGLContext();
+    [[nodiscard]] bool initializeRenderers();
+    [[nodiscard]] bool initializeEnvironmentParams();
+    [[nodiscard]] bool initializeInput();
+    [[nodiscard]] bool initializePhysics();
+    [[nodiscard]] bool initializeImGui();
+    [[nodiscard]] bool initializeSettingsMenus();
+
+    void setupMouseInputCallbacks();
+    void setupScrollInputCallbacks();
+    void setupFlowControlMenuCallbacks(std::shared_ptr<FlowControlMenu> flowControl);
+    void setupShaderSettingsMenuCallbacks(std::shared_ptr<ShaderSettingsMenu> shaderSettings);
+    void setupCircleCreatorMenuCallbacks(std::shared_ptr<CircleCreatorMenu> circleCreator);
+
     glm::vec2 worldToWindowCoordinates(const glm::vec2& clickPos);
     glm::vec2 windowToWorldCoordinates(const glm::vec2& clickPos);
 
