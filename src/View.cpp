@@ -58,3 +58,19 @@ void View::zoom(const GLfloat& zoom)
     setZoom(zoom);
 }
 
+glm::vec2 View::worldToWindowCoordinates(const glm::vec2& windowPos) const
+{
+    glm::vec2 viewPos{ m_position };
+	return glm::vec2(windowPos.x - viewPos.x, -windowPos.y + viewPos.y);
+}
+
+glm::vec2 View::windowToWorldCoordinates(const glm::vec2& windowPos ) const
+{
+    glm::vec2 dimensions{ m_dimensions };
+	glm::vec2 scaledDimensions{ this->dimensions() };
+	glm::vec2 screenCoords{ windowPos.x, dimensions.y - windowPos.y };
+	glm::vec2 scaledScreenCoords{ screenCoords.x * scaledDimensions.x / dimensions.x,  screenCoords.y * scaledDimensions.y / dimensions.y};
+	glm::vec2 offsetCoordinates{ this->position() };
+	glm::vec2 wCoords{ scaledScreenCoords + offsetCoordinates };
+	return wCoords;
+}

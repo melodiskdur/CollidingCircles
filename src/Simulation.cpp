@@ -15,18 +15,10 @@ enum class STATE { RUN, STOP, STEP };
 static STATE g_sim_state{ STATE::STOP };
 static std::size_t SHADER_TYPE{ 0 };
 
-static glm::vec3 CIRCLE_COLOR{ 0.99f, 0.2f, 0.0f };
-static GLfloat CIRCLE_RADIUS{ 1.0f };
-static GLfloat CIRCLE_MASS{ 1.0f };
-
 static GLuint rWidth{};
 static GLuint rHeight{};
 
-static bool STATIONARY_CHECKED{ false };
-
 static bool TO_RESIZE{ false };
-
-static GLsizei N_CIRCLES{0};
 
 void stateBtnCallback()
 {
@@ -46,8 +38,9 @@ void Simulation::resizeWindow()
 	m_width = rWidth;
 	m_height = rHeight;
 	m_view->setDimensions(glm::vec2(m_width, m_height));
-	m_bloomRenderer->setViewportSize(m_width, m_height);
-	m_bloomRenderer->resizeTextures();
+	m_renderManager->setViewportSize(m_width, m_height);
+	m_renderManager->bloomRenderer()->setViewportSize(m_width, m_height);
+	m_renderManager->bloomRenderer()->resizeTextures();
 	TO_RESIZE = false;
 }
 
@@ -109,120 +102,105 @@ void Simulation::init()
 	{
 		exit(EXIT_FAILURE);
 	}
+
+	m_frameTimeTracker = std::make_shared<FrameTimeTracker>();
+	m_frameTimeTracker->setFPSLimit(60);
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void Simulation::run()
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-	std::chrono::duration<float> frameDuration(FRAME_LENGTH);
-	std::chrono::steady_clock::time_point prevTime{ std::chrono::steady_clock::now() };
-
 	m_world->generateCircles(NUM_CIRCLES);
-	std::shared_ptr<std::vector<CircleObject>> m_circles{ m_world->circles() };
+	// std::shared_ptr<std::vector<CircleObject>> m_circles{ m_world->circles() };
 
     while (!glfwWindowShouldClose(m_window))
 	{
 		if (TO_RESIZE)
 			resizeWindow();
 
-		if (m_newCircles.size() > 0)
-		{
-			m_circles->insert(m_circles->end(), m_newCircles.begin(), m_newCircles.end());
-			m_newCircles.clear();
-		}
-
-		N_CIRCLES = m_circles->size();
-
-		std::vector<CircleRenderData> circleRenderData(m_circles->size());
-
-		std::chrono::steady_clock::time_point currentTime{ std::chrono::steady_clock::now() };
-		if ( std::chrono::duration<float>(currentTime - prevTime).count() < FRAME_LENGTH)
-			continue;
-		prevTime = currentTime;
-
 		m_inputManager->handleInputEvents();
-
-		// ImGui frame.
-
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-
-		m_settingsWindow->draw();
-
-		ImGui::Render();
-
-		// Update other events like keyboard/mouse input.
+		updateSimulation();
 		glfwPollEvents();
-		if (true)
-		{
-			if (g_sim_state != STATE::STOP)
-			{
-				m_timeFlow->updateTime();
-				m_gravity->applyForces(m_circles);
-				m_gravity->updateVelAndPos(m_circles, m_timeFlow->deltaTime());
-				m_collisionDetection->storeCirclesIntoGridCells(m_circles);
-				m_collisionDetection->detectCollisions();
-				m_collisionDetection->resolveCollisions(m_circles);
-
-			}
-
-			glm::vec2 halfScreen{ 0.5f * static_cast<GLfloat>(m_width), 0.5f * static_cast<GLfloat>(m_height) };
-			glm::mat4 viewProjectionMatrix{ m_view->viewProjectionMatrix() };
-
-			for (int i{0}; i < m_circles->size(); i++)
-			{
-				GLfloat rad{ m_circles->at(i).radius() };
-				glm::mat4 modelMatrix{ glm::translate(glm::mat4(1.0f), glm::vec3(m_circles->at(i).pos(), 0.0f)) };
-				modelMatrix = glm::scale(modelMatrix, glm::vec3(rad, rad, 0.f));
-				glm::vec4 pos{ modelMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f) };
-				circleRenderData[i] = CircleRenderData{
-					m_circles->at(i).pos(),
-					m_circles->at(i).color(),
-					rad
-					};
-			}
-
-			m_circleRendererInstanced->setOutputFBO(m_bloomRenderer->inputFBO());
-			m_circleRendererInstanced->setOutputFBOTextures(m_bloomRenderer->inputFBOSceneTex(), m_bloomRenderer->inputFBOBloomTex());
-
-			auto shaderProgram_cren{ m_circleRendererInstanced->shaderProgram() };
-			glUseProgram(shaderProgram_cren->id());
-			shaderProgram_cren->updateUniformMatrix4fv("viewProjectionMatrix", viewProjectionMatrix);
-			m_circleRendererInstanced->render(circleRenderData);
-
-			m_bloomRenderer->render();
-
-			if (m_gridRenderer->isGridEnabled())
-			{
-				auto shaderProgram_grid{ m_gridRenderer->shaderProgram() };
-				glUseProgram( shaderProgram_grid->id() );
-				glm::mat4 modelMatrix{ glm::translate(glm::mat4(1.0f), glm::vec3(m_world->worldCenter(), 0.0f)) };
-				modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f * WORLD_SIZE, 0.0));
-				shaderProgram_grid->updateUniformMatrix4fv("modelMatrix", modelMatrix);
-				shaderProgram_grid->updateUniformMatrix4fv("viewProjectionMatrix", m_view->viewProjectionMatrix());
-				m_gridRenderer->render();
-			}
-
-			if (m_lines.size() > 0)
-				m_lineRenderer->render(m_lines, m_view->viewProjectionMatrix());
-
-			m_lineRenderer->render(m_worldBorder, m_view->viewProjectionMatrix());
-		}
-
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		render();
+		renderImGui();
 
 		glfwSwapBuffers(m_window);
 
 		if (g_sim_state == STATE::STEP)
 			g_sim_state = STATE::STOP;
+
+		m_frameTimeTracker->waitForEndOfFrame();
 	}
 
 	// close GL context and any other GLFW resources
 	glfwTerminate();
 	exit(EXIT_SUCCESS);
 }
+
+void Simulation::updateSimulation()
+{
+	std::shared_ptr<std::vector<CircleObject>> m_circles{ m_world->circles() };
+
+	// New circles.
+	if (m_newCircles.size() > 0)
+	{
+		m_circles->insert(m_circles->end(), m_newCircles.begin(), m_newCircles.end());
+		m_newCircles.clear();
+	}
+
+	// Physics.
+	if (g_sim_state != STATE::STOP)
+	{
+		m_timeFlow->updateTime();
+		m_gravity->applyForces(m_circles);
+		m_gravity->updateVelAndPos(m_circles, m_timeFlow->deltaTime());
+		m_collisionDetection->storeCirclesIntoGridCells(m_circles);
+		m_collisionDetection->detectCollisions();
+		m_collisionDetection->resolveCollisions(m_circles);
+	}
+
+	*(m_creatorSettings->numCirclesRef()) = m_circles->size();
+}
+
+void Simulation::render()
+{
+	std::vector<CircleRenderData> circleRenderData(m_world->circles()->size());
+	std::shared_ptr<std::vector<CircleObject>> m_circles{ m_world->circles() };
+	glm::mat4 viewProjectionMatrix{ m_view->viewProjectionMatrix() };
+	for (int i{0}; i < m_circles->size(); i++)
+	{
+		circleRenderData[i] = CircleRenderData{
+			m_circles->at(i).pos(),
+			m_circles->at(i).color(),
+			m_circles->at(i).radius()
+			};
+	}
+	// Circle renderer.
+	m_renderManager->renderCircles(circleRenderData, viewProjectionMatrix);
+	// Grid renderer.
+	glm::mat4 modelMatrix{ glm::translate(glm::mat4(1.0f), glm::vec3(m_world->worldCenter(), 0.0f)) };
+	modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f * WORLD_SIZE, 0.0));
+	m_renderManager->renderGrid(modelMatrix, viewProjectionMatrix);
+	// Line renderer.
+	if (m_lines.size() > 0)
+		m_renderManager->renderLines(m_lines, viewProjectionMatrix);
+	m_renderManager->renderLines(m_worldBorder, viewProjectionMatrix);;
+}
+
+void Simulation::renderImGui()
+{
+	// ImGui frame.
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	m_settingsWindow->draw();
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
 
 [[nodiscard]] bool Simulation::initializeGLContext()
 {
@@ -231,54 +209,36 @@ void Simulation::run()
 		glfwTerminate();
 		return false;
 	}
-
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
 	m_window = glfwCreateWindow(INIT_WIDTH, INIT_HEIGHT, "Colliding Circles", NULL, NULL);
-
 	if (!m_window) {
 		glfwTerminate();
 		return false;
 	}
-
     glfwMakeContextCurrent(m_window);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_ALWAYS);
     glewExperimental = GL_TRUE;
     glewInit();
-
 	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << "\n";
-
 	auto f_onWindowResized{[](GLFWwindow* window, int w, int h)
     {
         static_cast<Simulation*>(glfwGetWindowUserPointer(window))->onWindowResized(window, w, h);
     }};
-
 	glfwSetFramebufferSizeCallback(m_window, f_onWindowResized);
-
 	return true;
 }
 
 [[nodiscard]] bool Simulation::initializeRenderers()
 {
-	m_gridRenderer = std::make_shared<GridRenderer>();
-	m_gridRenderer->init(glm::vec2(10, 10));
-
-	m_lineRenderer = std::make_shared<LineRenderer>();
-	m_lineRenderer->init();
-
-	m_circleRendererInstanced = std::make_shared<CircleRendererInstanced>();
-	m_circleRendererInstanced->setViewportSize(m_width, m_height);
-	m_circleRendererInstanced->init();
-
-	m_bloomRenderer = std::make_shared<BloomRenderer>();
-	m_bloomRenderer->init();
-	m_bloomRenderer->initFBO(m_width, m_height);
-
+	m_renderManager = std::make_shared<RendererManager>();
+	m_renderManager->setViewportSize(m_width, m_height);
+	if (!m_renderManager->initRenderers())
+		return false;
 	return true;
 }
 
@@ -366,19 +326,19 @@ void Simulation::setupMouseInputCallbacks()
 	m_inputManager->setRightClickDragCallback(
 		[=](const glm::vec2& clickPos, const glm::vec2& cursorPos, const glm::vec2& prevCursorPos)
 		{
-			glm::vec2 w2wc{ worldToWindowCoordinates(cursorPos) };
-			glm::vec2 w2wpc{ worldToWindowCoordinates(prevCursorPos) };
+			glm::vec2 w2wc{ m_view->worldToWindowCoordinates(cursorPos) };
+			glm::vec2 w2wpc{ m_view->worldToWindowCoordinates(prevCursorPos) };
 			m_view->move(glm::vec2(w2wpc.x, w2wpc.y) - glm::vec2(w2wc.x, w2wc.y));
 		});
 
 	m_inputManager->setLeftClickDragCallback(
 		[=](const glm::vec2& clickPos, const glm::vec2& currentPos, const glm::vec2& dpos)
 		{
-			glm::vec2 w2w{ windowToWorldCoordinates(clickPos) };
-			glm::vec2 w2wc{ windowToWorldCoordinates(currentPos) };
+			glm::vec2 w2w{ m_view->windowToWorldCoordinates(clickPos) };
+			glm::vec2 w2wc{ m_view->windowToWorldCoordinates(currentPos) };
 			if (m_lines.size() == 0)
 			{
-				m_lines.push_back(LineObject(glm::vec2(w2w), glm::vec2(w2wc), glm::vec3(CIRCLE_COLOR)));
+				m_lines.push_back(LineObject(glm::vec2(w2w), glm::vec2(w2wc), glm::vec3(m_creatorSettings->circleColor())));
 			}
 			else
 			{
@@ -389,14 +349,14 @@ void Simulation::setupMouseInputCallbacks()
 	m_inputManager->setLeftClickReleaseCallback(
 		[=](const glm::vec2& clickPos, const glm::vec2& cursorPos)
 		{
-			glm::vec2 w2w{ windowToWorldCoordinates(clickPos) };
-			glm::vec2 w2wc{ windowToWorldCoordinates(cursorPos) };
+			glm::vec2 w2w{ m_view->windowToWorldCoordinates(clickPos) };
+			glm::vec2 w2wc{ m_view->windowToWorldCoordinates(cursorPos) };
 			glm::vec2 velocity{ 1e-2f * (w2w - w2wc) };
-			CircleObject newObj(glm::vec2(w2w), glm::vec3{CIRCLE_COLOR}, std::move(velocity));
-			newObj.setRadius(std::move(GLfloat{CIRCLE_RADIUS}));
-			newObj.setMass(std::move(GLfloat{CIRCLE_MASS}));
-			if (STATIONARY_CHECKED)
-				newObj.setStationary(STATIONARY_CHECKED);
+			CircleObject newObj(glm::vec2(w2w), m_creatorSettings->circleColor(), std::move(velocity));
+			newObj.setRadius(m_creatorSettings->circleRadius());
+			newObj.setMass(m_creatorSettings->circleMass());
+			if (m_creatorSettings->stationaryChecked())
+				newObj.setStationary(m_creatorSettings->stationaryChecked());
 
 			m_newCircles.push_back(newObj);
 			if (m_lines.size() > 0)
@@ -437,7 +397,7 @@ void Simulation::setupShaderSettingsMenuCallbacks(std::shared_ptr<ShaderSettings
 {
 	shaderSettings->setCheckboxDisplayGridCallback([=](const bool& state)
 	{
-		m_gridRenderer->toggleGrid(state);
+		m_renderManager->gridRenderer()->toggleGrid(state);
 	});
 	shaderSettings->setSelectShaderTypeCallback([=](const std::size_t &i)
 	{
@@ -447,29 +407,13 @@ void Simulation::setupShaderSettingsMenuCallbacks(std::shared_ptr<ShaderSettings
 
 void Simulation::setupCircleCreatorMenuCallbacks(std::shared_ptr<CircleCreatorMenu> circleCreator)
 {
-	circleCreator->setColorReference(&CIRCLE_COLOR);
-	circleCreator->setMassReference(&CIRCLE_MASS);
-	circleCreator->setRadiusReference(&CIRCLE_RADIUS);
-	circleCreator->setNumCirclesReference(&N_CIRCLES);
+	m_creatorSettings = std::make_shared<CircleCreatorSettings>();
+	circleCreator->setColorReference(m_creatorSettings->circleColorRef());
+	circleCreator->setMassReference(m_creatorSettings->circleMassRef());
+	circleCreator->setRadiusReference(m_creatorSettings->circleRadiusRef());
+	circleCreator->setNumCirclesReference(m_creatorSettings->numCirclesRef());
 	circleCreator->setCheckboxStationaryCallback([=](const bool& state)
 	{
-		STATIONARY_CHECKED = state;
+		*(m_creatorSettings->stationaryCheckedRef()) = state;
 	});
-}
-
-glm::vec2 Simulation::worldToWindowCoordinates(const glm::vec2& clickPos)
-{
-	glm::vec2 viewPos{ m_view->position() };
-	return glm::vec2(clickPos.x - viewPos.x, -clickPos.y + viewPos.y);
-}
-
-glm::vec2 Simulation::windowToWorldCoordinates(const glm::vec2& clickPos)
-{
-	glm::vec2 dimensions{ glm::vec2((GLfloat)m_width, (GLfloat)m_height) };
-	glm::vec2 scaledDimensions{ m_view->dimensions() };
-	glm::vec2 screenCoords{ clickPos.x, dimensions.y - clickPos.y };
-	glm::vec2 scaledScreenCoords{ screenCoords.x * scaledDimensions.x / dimensions.x,  screenCoords.y * scaledDimensions.y / dimensions.y};
-	glm::vec2 offsetCoordinates{ m_view->position() };
-	glm::vec2 wCoords{ scaledScreenCoords + offsetCoordinates };
-	return wCoords;
 }

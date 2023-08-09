@@ -26,6 +26,9 @@ public:
     void move(const glm::vec2& dpos);
     void zoom(const GLfloat& zoom);
 
+    glm::vec2 worldToWindowCoordinates(const glm::vec2& windowPos) const;
+    glm::vec2 windowToWorldCoordinates(const glm::vec2& windowPos ) const;
+
 private:
     glm::vec2                   m_position{};
     glm::vec2                   m_dimensions{};

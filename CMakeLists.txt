@@ -6,9 +6,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(SOURCE_FILES
      src/main.cpp
      src/CircleObject.cpp
-     src/ScreenObject.cpp
      src/LineObject.cpp
-     src/CircleRenderer.cpp
      src/CircleRendererInstanced.cpp
      src/LineRenderer.cpp
      src/CircleUniformBuffer.cpp
@@ -25,7 +23,9 @@ set(SOURCE_FILES
      src/CollisionDetectionGrid.cpp
      src/GravityCalculator.cpp
      src/GridRenderer.cpp
-     src/BloomRenderer.cpp)
+     src/BloomRenderer.cpp
+     src/FrameTimeTracker.cpp
+     src/RendererManager.cpp)
 
 include_directories(
     ${CMAKE_SOURCE_DIR}/includes

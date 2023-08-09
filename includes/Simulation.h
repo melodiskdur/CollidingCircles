@@ -23,9 +23,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "CircleObject.h"
-#include "CircleRenderer.h"
 #include "BloomRenderer.h"
-#include "ScreenObject.h"
 #include "ShaderProgram.h"
 #include "InputManager.h"
 #include "UserInput.h"
@@ -42,6 +40,9 @@
 #include "FlowControlMenu.h"
 #include "ShaderSettingsMenu.h"
 #include "CircleCreatorMenu.h"
+#include "CircleCreatorSettings.h"
+#include "FrameTimeTracker.h"
+#include "RendererManager.h"
 
 class Simulation
 {
@@ -57,6 +58,10 @@ public:
     void run();
 
 private:
+    void updateSimulation();
+    void render();
+    void renderImGui();
+
     [[nodiscard]] bool initializeGLContext();
     [[nodiscard]] bool initializeRenderers();
     [[nodiscard]] bool initializeEnvironmentParams();
@@ -71,9 +76,6 @@ private:
     void setupShaderSettingsMenuCallbacks(std::shared_ptr<ShaderSettingsMenu> shaderSettings);
     void setupCircleCreatorMenuCallbacks(std::shared_ptr<CircleCreatorMenu> circleCreator);
 
-    glm::vec2 worldToWindowCoordinates(const glm::vec2& clickPos);
-    glm::vec2 windowToWorldCoordinates(const glm::vec2& clickPos);
-
 private:
     GLFWwindow*                                 m_window{};
     std::deque<CircleObject>                    m_newCircles{};
@@ -82,19 +84,16 @@ private:
     std::shared_ptr<CollisionDetectionGrid>     m_collisionDetection{};
     std::shared_ptr<GravityCalculator>          m_gravity{};
     std::shared_ptr<TimeFlow>                   m_timeFlow{};
-    std::shared_ptr<CircleRenderer>             m_circleRenderer{};
-    std::shared_ptr<BloomRenderer>              m_bloomRenderer{};
-    std::shared_ptr<GridRenderer>               m_gridRenderer{};
     std::shared_ptr<InputManager>               m_inputManager{};
     std::shared_ptr<UserInput>                  m_userInput{};
     std::shared_ptr<SettingsWindow>             m_settingsWindow{};
+    std::shared_ptr<CircleCreatorSettings>      m_creatorSettings{};
+    std::shared_ptr<FrameTimeTracker>           m_frameTimeTracker{};
+    std::shared_ptr<RendererManager>            m_renderManager{};
+
     GLuint                                      m_width{};
     GLuint                                      m_height{};
 
-    std::shared_ptr<LineRenderer>               m_lineRenderer{};
     std::vector<LineObject>                     m_lines{ };
     std::vector<LineObject>                     m_worldBorder{ };
-
-    std::shared_ptr<CircleRendererInstanced>    m_circleRendererInstanced{};
-
 };
