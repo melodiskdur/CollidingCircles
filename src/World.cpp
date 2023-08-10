@@ -14,38 +14,33 @@ World::World(const World& w)
 }
 
 World::~World()
-{
+{ /* ... */ }
 
+void World::init()
+{
+	// Gravity.
+	m_gravity = std::make_shared<GravityCalculator>();
+	m_gravity->setGravitationalConstant(6.674e2f);
+
+	// CollisionDetection.
+	m_collisionDetection = std::make_shared<CollisionDetectionGrid>();
+	m_collisionDetection->setGridSize(m_worldDimensions);
+	m_collisionDetection->setGridDimensions({ 20, 20 });
+	m_collisionDetection->init();
+}
+
+void World::updateWorldState(const float& timeStep)
+{
+	// Physics.
+	m_gravity->applyForces(m_circles);
+	m_gravity->updateVelAndPos(m_circles, timeStep);
+	m_collisionDetection->storeCirclesIntoGridCells(m_circles);
+	m_collisionDetection->detectCollisions();
+	m_collisionDetection->resolveCollisions(m_circles);
 }
 
 void World::setWorldDimensions(const glm::vec2& dimensions)
 {
     m_worldDimensions = { std::max(dimensions.x, DIMENSIONS_MIN.x),
                           std::max(dimensions.y, DIMENSIONS_MIN.y) };
-}
-
-void World::generateCircles(const std::size_t& n)
-{
-    std::srand(std::time(0));
-	m_circles->resize(n);
-    std::size_t iDim_x{ static_cast<std::size_t>(m_worldDimensions.x) };
-    std::size_t iDim_y{ static_cast<std::size_t>(m_worldDimensions.y) };
-	std::transform(m_circles->cbegin(), m_circles->cend(), m_circles->begin(),
-		[=](CircleObject c)
-		{
-			return CircleObject(glm::vec2(std::rand() % iDim_x, std::rand() % iDim_y));
-		});
-	int max{ 255 };
-	std::for_each(m_circles->begin(), m_circles->end(),
-		[=](CircleObject& c)
-		{
-			c.setColor(1.0f / max * glm::vec3(std::rand() % max, std::rand() % max, std::rand() % max));
-			// c.setColor(glm::vec3(1.0f, 0.0f, 0.0f));
-			c.setRadius(10 * ((std::rand() % 5) + 1));
-			c.setMass(c.radius());
-			GLfloat o{ static_cast<GLfloat>(std::rand() % 360) };
-			GLfloat velocitySpeed{ static_cast<GLfloat>(std::rand() % 50 + 1)  };
-			c.setVelocityVec(velocitySpeed * glm::vec2(std::cos(o / (2 * 3.14159f)), std::sin(o / (2 * 3.14159f))));
-			c.setPrevPos(c.pos() - c.velocityVec());
-		});
 }

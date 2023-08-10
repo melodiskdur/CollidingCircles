@@ -31,8 +31,6 @@
 #include "SettingsWindow.h"
 #include "GridRenderer.h"
 #include "World.h"
-#include "CollisionDetectionGrid.h"
-#include "GravityCalculator.h"
 #include "TimeFlow.h"
 #include "LineObject.h"
 #include "LineRenderer.h"
@@ -43,6 +41,7 @@
 #include "CircleCreatorSettings.h"
 #include "FrameTimeTracker.h"
 #include "RendererManager.h"
+#include "ShaderSettingsParams.h"
 
 class Simulation
 {
@@ -66,7 +65,6 @@ private:
     [[nodiscard]] bool initializeRenderers();
     [[nodiscard]] bool initializeEnvironmentParams();
     [[nodiscard]] bool initializeInput();
-    [[nodiscard]] bool initializePhysics();
     [[nodiscard]] bool initializeImGui();
     [[nodiscard]] bool initializeSettingsMenus();
 
@@ -81,13 +79,12 @@ private:
     std::deque<CircleObject>                    m_newCircles{};
     std::shared_ptr<View>                       m_view{};
     std::shared_ptr<World>                      m_world{};
-    std::shared_ptr<CollisionDetectionGrid>     m_collisionDetection{};
-    std::shared_ptr<GravityCalculator>          m_gravity{};
     std::shared_ptr<TimeFlow>                   m_timeFlow{};
     std::shared_ptr<InputManager>               m_inputManager{};
     std::shared_ptr<UserInput>                  m_userInput{};
     std::shared_ptr<SettingsWindow>             m_settingsWindow{};
     std::shared_ptr<CircleCreatorSettings>      m_creatorSettings{};
+    std::shared_ptr<ShaderSettingsParams>       m_shaderSettings{};
     std::shared_ptr<FrameTimeTracker>           m_frameTimeTracker{};
     std::shared_ptr<RendererManager>            m_renderManager{};
 

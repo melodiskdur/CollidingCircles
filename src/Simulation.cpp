@@ -88,11 +88,6 @@ void Simulation::init()
 		exit(EXIT_FAILURE);
 	}
 
-	if (!this->initializePhysics())
-	{
-		exit(EXIT_FAILURE);
-	}
-
 	if (!this->initializeImGui())
 	{
 		exit(EXIT_FAILURE);
@@ -111,9 +106,6 @@ void Simulation::init()
 
 void Simulation::run()
 {
-	m_world->generateCircles(NUM_CIRCLES);
-	// std::shared_ptr<std::vector<CircleObject>> m_circles{ m_world->circles() };
-
     while (!glfwWindowShouldClose(m_window))
 	{
 		if (TO_RESIZE)
@@ -141,25 +133,18 @@ void Simulation::run()
 void Simulation::updateSimulation()
 {
 	std::shared_ptr<std::vector<CircleObject>> m_circles{ m_world->circles() };
-
 	// New circles.
 	if (m_newCircles.size() > 0)
 	{
 		m_circles->insert(m_circles->end(), m_newCircles.begin(), m_newCircles.end());
 		m_newCircles.clear();
 	}
-
-	// Physics.
+	// Update world state (includes physics).
 	if (g_sim_state != STATE::STOP)
 	{
 		m_timeFlow->updateTime();
-		m_gravity->applyForces(m_circles);
-		m_gravity->updateVelAndPos(m_circles, m_timeFlow->deltaTime());
-		m_collisionDetection->storeCirclesIntoGridCells(m_circles);
-		m_collisionDetection->detectCollisions();
-		m_collisionDetection->resolveCollisions(m_circles);
+		m_world->updateWorldState(m_timeFlow->deltaTime());
 	}
-
 	*(m_creatorSettings->numCirclesRef()) = m_circles->size();
 }
 
@@ -248,6 +233,7 @@ void Simulation::renderImGui()
 	m_view->setPosition({-125.f, -125.f});
 	m_world = std::make_shared<World>();
 	m_world->setWorldDimensions(WORLD_SIZE);
+	m_world->init();
 	m_timeFlow = std::make_shared<TimeFlow>();
 	m_timeFlow->setDeltaTime(0.3f);
 
@@ -275,21 +261,6 @@ void Simulation::renderImGui()
 	return true;
 }
 
-[[nodiscard]] bool Simulation::initializePhysics()
-{
-	// Gravity.
-	m_gravity = std::make_shared<GravityCalculator>();
-	m_gravity->setGravitationalConstant(6.674e2f);
-
-	// CollisionDetection.
-	m_collisionDetection = std::make_shared<CollisionDetectionGrid>();
-	m_collisionDetection->setGridSize(m_world->worldDimensions());
-	m_collisionDetection->setGridDimensions({ 20, 20 });
-	m_collisionDetection->init();
-
-	return true;
-}
-
 [[nodiscard]] bool Simulation::initializeImGui()
 {
 	// Initialize ImGui.
@@ -303,17 +274,14 @@ void Simulation::renderImGui()
 [[nodiscard]] bool Simulation::initializeSettingsMenus()
 {
 	m_settingsWindow = std::make_shared<SettingsWindow>(SettingsWindow());
-
 	// FlowControl.
 	std::shared_ptr<FlowControlMenu> flowControl{ std::make_shared<FlowControlMenu>() };
 	setupFlowControlMenuCallbacks(flowControl);
 	m_settingsWindow->addMenu(flowControl);
-
 	// ShaderSettings.
 	std::shared_ptr<ShaderSettingsMenu> shaderSettings{ std::make_shared<ShaderSettingsMenu>() };
 	setupShaderSettingsMenuCallbacks(shaderSettings);
 	m_settingsWindow->addMenu(shaderSettings);
-
 	// Circle Creator.
 	std::shared_ptr<CircleCreatorMenu> circleCreator{ std::make_shared<CircleCreatorMenu>() };
 	setupCircleCreatorMenuCallbacks(circleCreator);
