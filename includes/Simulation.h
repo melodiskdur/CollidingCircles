@@ -42,6 +42,8 @@
 #include "FrameTimeTracker.h"
 #include "RendererManager.h"
 #include "ShaderSettingsParams.h"
+#include "CircleQuadTree.h"
+#include "CircleQuadVisualizer.h"
 
 class Simulation
 {

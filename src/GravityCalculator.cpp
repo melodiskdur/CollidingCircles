@@ -17,9 +17,10 @@ GravityCalculator::~GravityCalculator()
 }
 
 
-void GravityCalculator::applyForces(std::shared_ptr<std::vector<CircleObject>>& circles) const
+void GravityCalculator::applyForces(std::shared_ptr<std::vector<CircleObject>>& circles)
 {
-    bruteForceAlgorithm(circles);
+    //bruteForceAlgorithm(circles);
+    barnesHutAlgorithm(circles);
 }
 
 void GravityCalculator::updateVelAndPos(std::shared_ptr<std::vector<CircleObject>>& circles, const GLfloat& dt) const
@@ -45,6 +46,45 @@ void GravityCalculator::bruteForceAlgorithm(std::shared_ptr<std::vector<CircleOb
         });
         current.setForce(std::move(totalForceOnCurrent));
     });
+}
+
+void GravityCalculator::barnesHutAlgorithm(std::shared_ptr<std::vector<CircleObject>>& circles)
+{
+    if (!m_quadTree->root()) return;
+    for (CircleObject& circle: *circles)
+    {
+        if (circle.isStationary()) continue;
+        circle.setForce(glm::vec2(0.f));
+        barnesHutAlgorithmRecursive(&circle, m_quadTree->root());
+    }
+}
+
+void GravityCalculator::barnesHutAlgorithmRecursive(CircleObject* circle, const std::shared_ptr<CircleQuadNode> node)
+{
+    if (!node || !(node->isOccupied())) return;
+    glm::vec2 forceDirection{ node->m_centerOfMass - circle->pos() };
+    GLfloat distance{ glm::length(forceDirection) };
+    if (node->m_num > 1)
+    {
+        // Barnes Hut conditional, i.e is the node "close enough" to the current circle such
+        // that it warrants a more exact force approximation (through recursion).
+        if (node->m_size / distance < m_barnesHutThreshold)
+        {
+            GLfloat forceMag{ m_G * circle->mass() * node->m_totalMass / (distance * distance) };
+            circle->addForce(forceMag * forceDirection);
+        }
+        else
+        {
+            for (auto& childNode : node->m_childNodes)
+                barnesHutAlgorithmRecursive(circle, childNode);
+        }
+    }
+    // If there's only one particle in the region (and it's NOT equivalent to the current circle).
+    else if (circle != node->m_circle)
+    {
+        GLfloat forceMag{ m_G * circle->mass() * node->m_totalMass / (distance * distance) };
+        circle->addForce(forceMag * forceDirection);
+    }
 }
 
 void GravityCalculator::verlet(CircleObject& circle, const GLfloat& dt) const

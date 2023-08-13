@@ -1,5 +1,7 @@
 #include "LineRenderer.h"
 
+#include <iostream>
+
 LineRenderer::LineRenderer()
 {
 
@@ -33,7 +35,6 @@ void LineRenderer::init()
 
 void LineRenderer::render(const std::vector<LineObject>& lines, const glm::mat4& viewProjectionMatrix)
 {
-
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glUseProgram(m_shaderProgram->id());

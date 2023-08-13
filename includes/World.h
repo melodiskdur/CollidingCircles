@@ -7,6 +7,7 @@
 #include "CircleObject.h"
 #include "GravityCalculator.h"
 #include "CollisionDetectionGrid.h"
+#include "PhysicsManager.h"
 
 class World
 {
@@ -20,7 +21,8 @@ public:
 
     void setWorldDimensions(const glm::vec2& dimensions);
 
-    std::shared_ptr<std::vector<CircleObject>> circles() { return m_circles; }
+    std::shared_ptr<std::vector<CircleObject>> circles() { return m_circles; };
+    std::shared_ptr<PhysicsManager> physicsManager() const { return m_physicsManager; };
     constexpr glm::vec2 worldDimensions() const { return m_worldDimensions; };
     constexpr glm::vec2 worldCenter() const { return 0.5f * m_worldDimensions; };
 
@@ -36,6 +38,7 @@ public:
 
 private:
     glm::vec2                                       m_worldDimensions{};
+    std::shared_ptr<PhysicsManager>                 m_physicsManager{};
     std::shared_ptr<std::vector<CircleObject>>      m_circles{};
     std::shared_ptr<GravityCalculator>              m_gravity{};
     std::shared_ptr<CollisionDetectionGrid>         m_collisionDetection{};

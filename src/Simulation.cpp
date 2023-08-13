@@ -170,7 +170,7 @@ void Simulation::render()
 	// Line renderer.
 	if (m_lines.size() > 0)
 		m_renderManager->renderLines(m_lines, viewProjectionMatrix);
-	m_renderManager->renderLines(m_worldBorder, viewProjectionMatrix);;
+	m_renderManager->renderLines(m_worldBorder, viewProjectionMatrix);
 }
 
 void Simulation::renderImGui()

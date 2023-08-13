@@ -21,11 +21,15 @@ set(SOURCE_FILES
      src/World.cpp
      src/CircleCreatorMenu.cpp
      src/CollisionDetectionGrid.cpp
+     src/PhysicsManager.cpp
      src/GravityCalculator.cpp
      src/GridRenderer.cpp
      src/BloomRenderer.cpp
      src/FrameTimeTracker.cpp
-     src/RendererManager.cpp)
+     src/RendererManager.cpp
+     src/CircleQuadNode.cpp
+     src/CircleQuadTree.cpp
+     src/CircleQuadVisualizer.cpp)
 
 include_directories(
     ${CMAKE_SOURCE_DIR}/includes

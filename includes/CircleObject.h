@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <memory>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -17,6 +18,7 @@ public:
     ~CircleObject();
 
     void mergeInto(CircleObject& collided);
+    constexpr void addForce(glm::vec2&& F) { m_force += F; }
 
     constexpr void setPos(glm::vec2&& pos)          { m_pos = std::move(pos); }
     constexpr void setPrevPos(glm::vec2&& pos)      { m_prevPos = std::move(pos); }
@@ -39,14 +41,14 @@ public:
     constexpr bool isStationary() const             { return m_stationary; }
 
 private:
-    glm::vec2               m_pos{ GLfloat(0.0f) };
-    glm::vec2               m_prevPos{ GLfloat(0.0f) };
-    glm::vec2               m_velocityVec{ GLfloat(0.0f) };
-    GLfloat                 m_radius{ 1.0f };
-    GLfloat                 m_scale{ 1.0f };
-    glm::vec3               m_color{ GLfloat(0.0f) };
-    GLfloat                 m_mass{ 1.0f };
-    glm::vec2               m_force{ 0.0f };
-    bool                    m_toDestroy{ false };
-    bool                    m_stationary{ false };
+    glm::vec2                           m_pos{ GLfloat(0.0f) };
+    glm::vec2                           m_prevPos{ GLfloat(0.0f) };
+    glm::vec2                           m_velocityVec{ GLfloat(0.0f) };
+    GLfloat                             m_radius{ 1.0f };
+    GLfloat                             m_scale{ 1.0f };
+    glm::vec3                           m_color{ GLfloat(0.0f) };
+    GLfloat                             m_mass{ 1.0f };
+    glm::vec2                           m_force{ 0.0f };
+    bool                                m_toDestroy{ false };
+    bool                                m_stationary{ false };
 };
