@@ -36,19 +36,19 @@ void FlowControlMenu::drawHead() const
 
 void FlowControlMenu::drawBtnState()
 {
-    if (ImGui::Button(m_isRunning ? m_btnStateRun.c_str() : m_btnStateStop.c_str(), ImVec2(80.0f, 0.0f)) && m_btnStateCallback)
+    if (ImGui::Button(m_isRunning ? m_btnStateRun.c_str() : m_btnStateStop.c_str(), ImVec2(80.0f, 0.0f)))
     {
-       m_btnStateCallback();
-       m_isRunning = !m_isRunning;
+        m_flowControlParams->m_simState = m_flowControlParams->m_simState == SIM_STATE::RUN ? SIM_STATE::STOP : SIM_STATE::RUN;
+        m_isRunning = !m_isRunning;
     }
 }
 
 void FlowControlMenu::drawSldrTimeStep() const
 {
-    if (m_sldrTimestepReference)
+    if (m_flowControlParams->m_timeStepRef)
     {
         ImGui::Text(m_sldrTimestep.c_str());
-        ImGui::SliderFloat("[ms]", m_sldrTimestepReference, 0.05f, 1.0f);
+        ImGui::SliderFloat("[ms]", m_flowControlParams->m_timeStepRef, FlowControlParams::TIMESTEP_MIN, FlowControlParams::TIMESTEP_MAX);
     }
 }
 
@@ -60,16 +60,16 @@ void FlowControlMenu::drawBtnReset() const
 
 void FlowControlMenu::drawBtnStepForward()
 {
-    if (ImGui::Button(m_btnStepForward.c_str()) && m_btnStepForwardCallback)
+    if (ImGui::Button(m_btnStepForward.c_str()))
     {
         m_isRunning = false;
-        m_btnStepForwardCallback();
+        m_flowControlParams->m_simState = SIM_STATE::STEP;
     }
 }
 
 void FlowControlMenu::drawDspSimulationTime() const
 {
-    if (m_dspSimulationTimeReference)
-        ImGui::Text("Elapsed Simulation Time: %.2f [s]", 0.001f * (*m_dspSimulationTimeReference));
+    if (m_flowControlParams->m_timeRef)
+        ImGui::Text("Elapsed Simulation Time: %.2f [s]", 0.001f * (*m_flowControlParams->m_timeRef));
 }
 

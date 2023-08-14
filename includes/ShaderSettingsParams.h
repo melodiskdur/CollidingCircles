@@ -4,30 +4,30 @@
 #include <GLFW/glfw3.h>
 #include "glm/glm.hpp"
 
-struct GlowParams
-{
-    GLfloat         m_glowIntensity{};
-    GLfloat         m_colorIntensity{};
-};
-
 class ShaderSettingsParams
 {
 public:
-    ShaderSettingsParams() { /* ... */ }
+    ShaderSettingsParams(GLfloat* _glowIntensitytRef, GLfloat* _colorIntensityRef) : m_glowIntensityRef(_glowIntensitytRef), m_colorIntensityRef(_colorIntensityRef)
+    { /* ... */ }
 
     ~ShaderSettingsParams() { /* ... */ }
 
     constexpr bool isDisplayGridAvailable() const { return m_displayGridAvailable; };
     constexpr size_t shaderType() const { return m_shaderType; };
-    constexpr GlowParams glowParams() const { return m_glowParams; };
 
     bool* displayGridAvailableRef() { return &m_displayGridAvailable; };
     size_t* shaderTypeRef() { return &m_shaderType; };
-    GLfloat* glowIntensityRef() { return &(m_glowParams.m_glowIntensity); };
-    GLfloat* colorIntensity() { return &(m_glowParams.m_colorIntensity); };
+    GLfloat* glowIntensityRef() { return m_glowIntensityRef; };
+    GLfloat* colorIntensityRef() { return m_colorIntensityRef; };
+
+    static constexpr GLfloat GLOW_INTENSITY_MIN{ 0.1f };
+    static constexpr GLfloat GLOW_INTENSITY_MAX{ 5.0f };
+    static constexpr GLfloat COLOR_INTENSITY_MIN{ 0.1f };
+    static constexpr GLfloat COLOR_INTENSITY_MAX{ 5.0f };
 
 private:
-    bool                m_displayGridAvailable{};
-    size_t              m_shaderType{};
-    GlowParams          m_glowParams{};
+    GLfloat*            m_glowIntensityRef{ nullptr };
+    GLfloat*            m_colorIntensityRef{ nullptr };
+    bool                m_displayGridAvailable{ true };
+    size_t              m_shaderType{ 1 };
 };

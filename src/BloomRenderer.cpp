@@ -103,6 +103,9 @@ void BloomRenderer::render()
     glBindTexture(GL_TEXTURE_2D, m_bloomFBOBloomMipmaps[0].m_texture);
     m_finalizedBloomShaderProgram->updateUniform1i("glowBuffer", 1);
 
+    m_finalizedBloomShaderProgram->updateUniform1f("glowIntensity", m_glowIntensity);
+    m_finalizedBloomShaderProgram->updateUniform1f("colorIntensity", m_colorIntensity);
+
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
     glUseProgram(0);

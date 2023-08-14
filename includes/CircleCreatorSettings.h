@@ -22,6 +22,13 @@ public:
     GLsizei* numCirclesRef() { return &m_numCircles; };
     bool* stationaryCheckedRef() { return &m_stationaryChecked; };
 
+    // Limits.
+    static constexpr GLfloat CIRCLE_RADIUS_MIN{ 0.5f };
+    static constexpr GLfloat CIRCLE_RADIUS_MAX{ 100.f };
+
+    static constexpr GLfloat CIRCLE_MASS_MIN{ 1.f };
+    static constexpr GLfloat CIRCLE_MASS_MAX{ 200.f };
+
 private:
     glm::vec3           m_circleColor{ 0.99f, 0.2f, 0.0f };
     GLfloat             m_circleRadius{ 2.0f };

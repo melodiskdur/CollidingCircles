@@ -10,20 +10,13 @@ constexpr const GLuint INIT_HEIGHT{ 720 };
 constexpr glm::vec2 WORLD_SIZE{ 10000.0f, 10000.0f };
 constexpr GLuint NUM_CIRCLES{ 0 };
 constexpr const float FRAME_LENGTH{ 1.0f / 60.0f };
-enum class STATE { RUN, STOP, STEP };
 
-static STATE g_sim_state{ STATE::STOP };
 static std::size_t SHADER_TYPE{ 0 };
 
 static GLuint rWidth{};
 static GLuint rHeight{};
 
 static bool TO_RESIZE{ false };
-
-void stateBtnCallback()
-{
-	g_sim_state = g_sim_state == STATE::RUN ? STATE::STOP : STATE::RUN;
-}
 
 void Simulation::onWindowResized(GLFWwindow* window, int w, int h)
 {
@@ -45,19 +38,10 @@ void Simulation::resizeWindow()
 }
 
 Simulation::Simulation() : m_width(INIT_WIDTH), m_height(INIT_HEIGHT)
-{
-
-}
+{ /* ... */ }
 
 Simulation::~Simulation()
-{
-
-}
-
-void Simulation::setScreenDimensions(const GLuint& width, const GLuint& height)
-{
-
-}
+{ /* ... */ }
 
 void Simulation::updateViewPosition(const glm::vec2& clickPos, const glm::vec2& currentPos)
 {
@@ -119,8 +103,8 @@ void Simulation::run()
 
 		glfwSwapBuffers(m_window);
 
-		if (g_sim_state == STATE::STEP)
-			g_sim_state = STATE::STOP;
+		if (m_flowControlParams->m_simState == SIM_STATE::STEP)
+			m_flowControlParams->m_simState = SIM_STATE::STOP;
 
 		m_frameTimeTracker->waitForEndOfFrame();
 	}
@@ -140,7 +124,7 @@ void Simulation::updateSimulation()
 		m_newCircles.clear();
 	}
 	// Update world state (includes physics).
-	if (g_sim_state != STATE::STOP)
+	if (m_flowControlParams->m_simState != SIM_STATE::STOP)
 	{
 		m_timeFlow->updateTime();
 		m_world->updateWorldState(m_timeFlow->deltaTime());
@@ -276,6 +260,8 @@ void Simulation::renderImGui()
 	m_settingsWindow = std::make_shared<SettingsWindow>(SettingsWindow());
 	// FlowControl.
 	std::shared_ptr<FlowControlMenu> flowControl{ std::make_shared<FlowControlMenu>() };
+	m_flowControlParams = std::make_shared<FlowControlParams>(m_timeFlow->timeReference(), m_timeFlow->deltaTimeReference());
+	flowControl->setFlowControlParams(m_flowControlParams);
 	setupFlowControlMenuCallbacks(flowControl);
 	m_settingsWindow->addMenu(flowControl);
 	// ShaderSettings.
@@ -286,6 +272,10 @@ void Simulation::renderImGui()
 	std::shared_ptr<CircleCreatorMenu> circleCreator{ std::make_shared<CircleCreatorMenu>() };
 	setupCircleCreatorMenuCallbacks(circleCreator);
 	m_settingsWindow->addMenu(circleCreator);
+	// Physics Settings.
+	std::shared_ptr<PhysicsSettingsMenu> physicsSettings{ std::make_shared<PhysicsSettingsMenu>() };
+	setupPhysicsSettingsMenuCallbacks(physicsSettings);
+	m_settingsWindow->addMenu(physicsSettings);
 	return true;
 }
 
@@ -347,41 +337,29 @@ void Simulation::setupScrollInputCallbacks()
 
 void Simulation::setupFlowControlMenuCallbacks(std::shared_ptr<FlowControlMenu> flowControl)
 {
-	flowControl->setTimestepReference(m_timeFlow->deltaTimeReference());
-	flowControl->setSimulationTimeReference(m_timeFlow->timeReference());
-	flowControl->setBtnStateCallback(std::function<void()>(stateBtnCallback));
 	flowControl->setBtnResetCallback([=]()
 	{
 		m_world->circles()->clear();
 		m_timeFlow->resetTime();
 	});
-	flowControl->setBtnStepForwardCallback([=]()
-	{
-		g_sim_state = STATE::STEP;
-	});
 }
 
 void Simulation::setupShaderSettingsMenuCallbacks(std::shared_ptr<ShaderSettingsMenu> shaderSettings)
 {
-	shaderSettings->setCheckboxDisplayGridCallback([=](const bool& state)
-	{
-		m_renderManager->gridRenderer()->toggleGrid(state);
-	});
-	shaderSettings->setSelectShaderTypeCallback([=](const std::size_t &i)
-	{
-		SHADER_TYPE = i;
-	});
+	m_shaderSettingsParams = std::make_shared<ShaderSettingsParams>(
+				m_renderManager->bloomRenderer()->glowIntensityRef(),
+				m_renderManager->bloomRenderer()->colorIntensityRef());
+	shaderSettings->setShaderSettingsParams(m_shaderSettingsParams);
 }
 
 void Simulation::setupCircleCreatorMenuCallbacks(std::shared_ptr<CircleCreatorMenu> circleCreator)
 {
 	m_creatorSettings = std::make_shared<CircleCreatorSettings>();
-	circleCreator->setColorReference(m_creatorSettings->circleColorRef());
-	circleCreator->setMassReference(m_creatorSettings->circleMassRef());
-	circleCreator->setRadiusReference(m_creatorSettings->circleRadiusRef());
-	circleCreator->setNumCirclesReference(m_creatorSettings->numCirclesRef());
-	circleCreator->setCheckboxStationaryCallback([=](const bool& state)
-	{
-		*(m_creatorSettings->stationaryCheckedRef()) = state;
-	});
+	circleCreator->setCircleCreatorSettings(m_creatorSettings);
+}
+
+void Simulation::setupPhysicsSettingsMenuCallbacks(std::shared_ptr<PhysicsSettingsMenu> physicsSettings)
+{
+	m_physicsParams = std::make_shared<PhysicsSettingsParams>(m_world->physicsManager()->gravityCalculator()->gravityConstantRef());
+	physicsSettings->setPhysicsSettingsParams(m_physicsParams);
 }

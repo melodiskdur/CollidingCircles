@@ -17,7 +17,7 @@ void PhysicsManager::init()
     m_quadTree = std::make_shared<CircleQuadTree>(glm::vec2(-10000.f), 10.f * 10000.f);
     // Gravity.
 	m_gravity = std::make_shared<GravityCalculator>();
-	m_gravity->setGravitationalConstant(6.674e-1f);
+	m_gravity->setGravitationalConstant(6.674e-4f);
     m_gravity->setQuadTree(m_quadTree);
     // QuadTreeVisualizer.
     m_quadVisualizer = std::make_shared<CircleQuadVisualizer>();
@@ -38,4 +38,5 @@ void PhysicsManager::handlePhysics(std::shared_ptr<std::vector<CircleObject>> ci
 	m_collisionDetection->storeCirclesIntoGridCells(circles);
 	m_collisionDetection->detectCollisions();
 	m_collisionDetection->resolveCollisions(circles);
+
 }

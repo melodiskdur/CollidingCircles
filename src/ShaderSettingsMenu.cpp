@@ -18,6 +18,17 @@ void ShaderSettingsMenu::draw()
     drawCheckboxDisplayGrid();
     verticalSpacing(3);
     drawSelectShaderType();
+
+    switch(m_shaderSettingsParams->shaderType())
+    {
+        case 0: break;
+        case 1:
+            verticalSpacing(3);
+            drawSldrGlowIntensity();
+            verticalSpacing(3);
+            drawSldrColorIntensity();
+            break;
+    }
 }
 
 void ShaderSettingsMenu::drawHead() const
@@ -29,8 +40,7 @@ void ShaderSettingsMenu::drawHead() const
 
 void ShaderSettingsMenu::drawCheckboxDisplayGrid()
 {
-    if (ImGui::Checkbox(m_chkbxDisplayGrid.c_str(), &m_chckbxDisplayGridIsChecked) && m_chckbxDisplayGridCallback)
-        m_chckbxDisplayGridCallback(m_chckbxDisplayGridIsChecked);
+    ImGui::Checkbox(m_chkbxDisplayGrid.c_str(), m_shaderSettingsParams->displayGridAvailableRef());
 }
 
 void ShaderSettingsMenu::drawSelectShaderType()
@@ -39,9 +49,27 @@ void ShaderSettingsMenu::drawSelectShaderType()
     {
         if (ImGui::Selectable(m_shaders[i].c_str(), m_selected == i))
         {
+            *m_shaderSettingsParams->shaderTypeRef() = i;
             m_selected = i;
-            m_slctShaderTypeCallback(i);
+            break;
         }
     }
 }
 
+void ShaderSettingsMenu::drawSldrGlowIntensity()
+{
+    ImGui::Text(m_sldrGlowIntensityHeader.c_str());
+    ImGui::SliderFloat("",
+                    m_shaderSettingsParams->glowIntensityRef(),
+                    ShaderSettingsParams::GLOW_INTENSITY_MIN,
+                    ShaderSettingsParams::GLOW_INTENSITY_MAX);
+}
+
+void ShaderSettingsMenu::drawSldrColorIntensity()
+{
+    ImGui::Text(m_sldrColorIntensityHeader.c_str());
+    ImGui::SliderFloat("",
+                    m_shaderSettingsParams->colorIntensityRef(),
+                    ShaderSettingsParams::COLOR_INTENSITY_MIN,
+                    ShaderSettingsParams::COLOR_INTENSITY_MAX);
+}

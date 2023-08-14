@@ -37,6 +37,9 @@ public:
 
     constexpr void setViewportSize(const GLsizei& width, const GLsizei& height) { m_viewportSize = { width, height }; };
 
+    GLfloat* glowIntensityRef() { return &m_glowIntensity; };
+    GLfloat* colorIntensityRef() { return &m_colorIntensity; };
+
 private:
     void downsample();
     void upsample();
@@ -60,6 +63,9 @@ private:
     std::shared_ptr<ShaderProgram>  m_finalizedBloomShaderProgram{};
     std::shared_ptr<ShaderProgram>  m_downsamplerShaderProgram{};
     std::shared_ptr<ShaderProgram>  m_upsamplerShaderProgram{};
+
+    GLfloat                         m_glowIntensity{ 1.f };
+    GLfloat                         m_colorIntensity{ 1.f };
 
     std::array<GLfloat, 12>         m_fullscreenQuadVertices
     {

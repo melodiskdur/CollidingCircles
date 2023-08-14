@@ -21,6 +21,8 @@ public:
     void applyForces(std::shared_ptr<std::vector<CircleObject>>& circles);
     void updateVelAndPos(std::shared_ptr<std::vector<CircleObject>>& circles, const GLfloat& dt) const;
 
+    GLfloat* gravityConstantRef() { return &m_G; };
+
 private:
     void bruteForceAlgorithm(std::shared_ptr<std::vector<CircleObject>>& circles) const;
     void barnesHutAlgorithm(std::shared_ptr<std::vector<CircleObject>>& circles);

@@ -13,6 +13,7 @@
 #include "imgui/imgui_impl_opengl3.h"
 
 #include "IMenu.h"
+#include "FlowControlParams.h"
 
 class FlowControlMenu : public IMenu
 {
@@ -23,11 +24,8 @@ public:
     const char* name() const override { return m_name.c_str(); }
     void draw() override;
 
-    void setTimestepReference(GLfloat* reference) { m_sldrTimestepReference = reference; };
-    void setSimulationTimeReference(GLfloat* reference) { m_dspSimulationTimeReference = reference; };
-    void setBtnStateCallback(const std::function<void()>& callback) { m_btnStateCallback = callback; };
+    void setFlowControlParams(std::shared_ptr<FlowControlParams> p) { m_flowControlParams = p; };
     void setBtnResetCallback(const std::function<void()>& callback) { m_btnResetCallback = callback; };
-    void setBtnStepForwardCallback(const std::function<void()>& callback) { m_btnStepForwardCallback = callback; };
 
 private:
     void drawHead() const;
@@ -40,16 +38,14 @@ private:
     constexpr void indent(const std::size_t& n) const { for (auto i{0}; i < n; i++) ImGui::Indent(); };
 
 private:
-    std::string                 m_name{ "Flow Control" };
-    std::string                 m_sldrTimestep{ "Time Interval" };
-    GLfloat*                    m_sldrTimestepReference{};
-    std::string                 m_btnStateRun{ "Pause" };
-    std::string                 m_btnStateStop{ "Run" };
-    bool                        m_isRunning{ false };
-    std::function<void()>       m_btnStateCallback{};
-    std::string                 m_btnReset{ "Reset Simulation" };
-    std::function<void()>       m_btnResetCallback{};
-    std::string                 m_btnStepForward{ "Step Forward" };
-    std::function<void()>       m_btnStepForwardCallback{};
-    GLfloat*                    m_dspSimulationTimeReference{};
+    std::string                         m_name{ "Flow Control" };
+    std::shared_ptr<FlowControlParams>  m_flowControlParams{};
+    std::string                         m_sldrTimestep{ "Time Interval" };
+    std::string                         m_btnStateRun{ "Pause" };
+    std::string                         m_btnStateStop{ "Run" };
+    bool                                m_isRunning{ false };
+    std::string                         m_btnReset{ "Reset Simulation" };
+    std::function<void()>               m_btnResetCallback{};
+    std::string                         m_btnStepForward{ "Step Forward" };
+
 };

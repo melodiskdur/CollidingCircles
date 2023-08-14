@@ -44,6 +44,9 @@
 #include "ShaderSettingsParams.h"
 #include "CircleQuadTree.h"
 #include "CircleQuadVisualizer.h"
+#include "PhysicsSettingsMenu.h"
+#include "PhysicsSettingsParams.h"
+#include "FlowControlParams.h"
 
 class Simulation
 {
@@ -52,7 +55,6 @@ public:
     ~Simulation();
 
     void updateViewPosition(const glm::vec2& clickPos, const glm::vec2& currentPos);
-    void setScreenDimensions(const GLuint& width, const GLuint& height);
     void onWindowResized(GLFWwindow* window, int w, int h);
     void resizeWindow();
     void init();
@@ -75,6 +77,7 @@ private:
     void setupFlowControlMenuCallbacks(std::shared_ptr<FlowControlMenu> flowControl);
     void setupShaderSettingsMenuCallbacks(std::shared_ptr<ShaderSettingsMenu> shaderSettings);
     void setupCircleCreatorMenuCallbacks(std::shared_ptr<CircleCreatorMenu> circleCreator);
+    void setupPhysicsSettingsMenuCallbacks(std::shared_ptr<PhysicsSettingsMenu> physicsSettings);
 
 private:
     GLFWwindow*                                 m_window{};
@@ -86,7 +89,9 @@ private:
     std::shared_ptr<UserInput>                  m_userInput{};
     std::shared_ptr<SettingsWindow>             m_settingsWindow{};
     std::shared_ptr<CircleCreatorSettings>      m_creatorSettings{};
-    std::shared_ptr<ShaderSettingsParams>       m_shaderSettings{};
+    std::shared_ptr<ShaderSettingsParams>       m_shaderSettingsParams{};
+    std::shared_ptr<PhysicsSettingsParams>      m_physicsParams{};
+    std::shared_ptr<FlowControlParams>          m_flowControlParams{};
     std::shared_ptr<FrameTimeTracker>           m_frameTimeTracker{};
     std::shared_ptr<RendererManager>            m_renderManager{};
 

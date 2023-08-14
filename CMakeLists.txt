@@ -29,7 +29,8 @@ set(SOURCE_FILES
      src/RendererManager.cpp
      src/CircleQuadNode.cpp
      src/CircleQuadTree.cpp
-     src/CircleQuadVisualizer.cpp)
+     src/CircleQuadVisualizer.cpp
+     src/PhysicsSettingsMenu.cpp)
 
 include_directories(
     ${CMAKE_SOURCE_DIR}/includes
