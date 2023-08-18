@@ -8,10 +8,7 @@
 constexpr const GLuint INIT_WIDTH{ 1280 };
 constexpr const GLuint INIT_HEIGHT{ 720 };
 constexpr glm::vec2 WORLD_SIZE{ 10000.0f, 10000.0f };
-constexpr GLuint NUM_CIRCLES{ 0 };
 constexpr const float FRAME_LENGTH{ 1.0f / 60.0f };
-
-static std::size_t SHADER_TYPE{ 0 };
 
 static GLuint rWidth{};
 static GLuint rHeight{};
@@ -117,12 +114,11 @@ void Simulation::run()
 void Simulation::updateSimulation()
 {
 	std::shared_ptr<std::vector<CircleObject>> m_circles{ m_world->circles() };
+
 	// New circles.
-	if (m_newCircles.size() > 0)
-	{
-		m_circles->insert(m_circles->end(), m_newCircles.begin(), m_newCircles.end());
-		m_newCircles.clear();
-	}
+	if (!m_circleCreator->newCircles().empty())
+		m_world->moveInsert(m_circleCreator->newCircles());
+
 	// Update world state (includes physics).
 	if (m_flowControlParams->m_simState != SIM_STATE::STOP)
 	{
@@ -236,9 +232,17 @@ void Simulation::renderImGui()
 
 [[nodiscard]] bool Simulation::initializeInput()
 {
+	// Generating mouse input events.
 	m_userInput = std::make_shared<UserInput>(UserInput(m_window));
 	m_inputManager = std::make_shared<InputManager>();
 	m_inputManager->setUserInput(m_userInput);
+
+	// Generating circles from mouse input events.
+	m_circleCreator = std::make_shared<CircleCreator>();
+	m_circleCreator->init();
+	m_creatorSettings = std::make_shared<CircleCreatorSettings>();
+	m_circleCreator->setCircleCreatorSettings(m_creatorSettings);
+
 	setupMouseInputCallbacks();
 	setupScrollInputCallbacks();
 
@@ -310,13 +314,7 @@ void Simulation::setupMouseInputCallbacks()
 			glm::vec2 w2w{ m_view->windowToWorldCoordinates(clickPos) };
 			glm::vec2 w2wc{ m_view->windowToWorldCoordinates(cursorPos) };
 			glm::vec2 velocity{ 1e-2f * (w2w - w2wc) };
-			CircleObject newObj(glm::vec2(w2w), m_creatorSettings->circleColor(), std::move(velocity));
-			newObj.setRadius(m_creatorSettings->circleRadius());
-			newObj.setMass(m_creatorSettings->circleMass());
-			if (m_creatorSettings->stationaryChecked())
-				newObj.setStationary(m_creatorSettings->stationaryChecked());
-
-			m_newCircles.push_back(newObj);
+			m_circleCreator->generate(w2w, velocity);
 			if (m_lines.size() > 0)
 			{
 				m_lines.pop_back();
@@ -354,7 +352,6 @@ void Simulation::setupShaderSettingsMenuCallbacks(std::shared_ptr<ShaderSettings
 
 void Simulation::setupCircleCreatorMenuCallbacks(std::shared_ptr<CircleCreatorMenu> circleCreator)
 {
-	m_creatorSettings = std::make_shared<CircleCreatorSettings>();
 	circleCreator->setCircleCreatorSettings(m_creatorSettings);
 }
 

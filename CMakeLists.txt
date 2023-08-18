@@ -9,7 +9,6 @@ set(SOURCE_FILES
      src/LineObject.cpp
      src/CircleRendererInstanced.cpp
      src/LineRenderer.cpp
-     src/CircleUniformBuffer.cpp
      src/ShaderProgram.cpp
      src/UserInput.cpp
      src/InputManager.cpp
@@ -19,7 +18,9 @@ set(SOURCE_FILES
      src/ShaderSettingsMenu.cpp
      src/View.cpp
      src/World.cpp
+     src/CircleCreator.cpp
      src/CircleCreatorMenu.cpp
+     src/SpiralPatternGenerator.cpp
      src/CollisionDetectionGrid.cpp
      src/PhysicsManager.cpp
      src/GravityCalculator.cpp

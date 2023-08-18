@@ -33,6 +33,8 @@ private:
     void drawMassSelector();
     void drawStationaryCheckBox();
     void drawNumCircles();
+    void drawGeneratorHeader();
+    void drawGeneratorType();
     constexpr void verticalSpacing(const std::size_t& n) const { for(auto i{0}; i < n; i++) ImGui::Spacing(); };
     constexpr void indent(const std::size_t& n) const { for (auto i{0}; i < n; i++) ImGui::Indent(); };
 
@@ -45,4 +47,7 @@ private:
     std::string                             m_massHeader{ "Mass" };
     std::string                             m_stationaryHeader{ "Set Stationary" };
     std::string                             m_numCirclesHeader{ "Number of circles" };
+    std::string                             m_generatorTypeHeader{ "Creation Type" };
+    std::vector<std::string>                m_generators{ "Single Circle", "Galaxy Pattern" };
+    GLsizei                                 m_selectedGenerator{ 0 };
 };

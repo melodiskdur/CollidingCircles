@@ -21,9 +21,9 @@ public:
     GLfloat* colorIntensityRef() { return m_colorIntensityRef; };
 
     static constexpr GLfloat GLOW_INTENSITY_MIN{ 0.1f };
-    static constexpr GLfloat GLOW_INTENSITY_MAX{ 5.0f };
+    static constexpr GLfloat GLOW_INTENSITY_MAX{ 10.0f };
     static constexpr GLfloat COLOR_INTENSITY_MIN{ 0.1f };
-    static constexpr GLfloat COLOR_INTENSITY_MAX{ 5.0f };
+    static constexpr GLfloat COLOR_INTENSITY_MAX{ 10.0f };
 
 private:
     GLfloat*            m_glowIntensityRef{ nullptr };

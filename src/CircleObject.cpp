@@ -19,7 +19,7 @@ CircleObject::~CircleObject() { /* ... */}
 
 void CircleObject::mergeInto(CircleObject& collided)
 {
-    m_radius += 0.5f * collided.m_radius;
+    m_radius += 0.25f * collided.m_radius;
     if (!m_stationary)
         m_velocityVec += collided.m_mass * collided.m_velocityVec / m_mass;
     m_mass += collided.m_mass;

@@ -51,7 +51,6 @@ void ShaderSettingsMenu::drawSelectShaderType()
         {
             *m_shaderSettingsParams->shaderTypeRef() = i;
             m_selected = i;
-            break;
         }
     }
 }
@@ -59,7 +58,7 @@ void ShaderSettingsMenu::drawSelectShaderType()
 void ShaderSettingsMenu::drawSldrGlowIntensity()
 {
     ImGui::Text(m_sldrGlowIntensityHeader.c_str());
-    ImGui::SliderFloat("",
+    ImGui::SliderFloat(" ",
                     m_shaderSettingsParams->glowIntensityRef(),
                     ShaderSettingsParams::GLOW_INTENSITY_MIN,
                     ShaderSettingsParams::GLOW_INTENSITY_MAX);
@@ -68,7 +67,7 @@ void ShaderSettingsMenu::drawSldrGlowIntensity()
 void ShaderSettingsMenu::drawSldrColorIntensity()
 {
     ImGui::Text(m_sldrColorIntensityHeader.c_str());
-    ImGui::SliderFloat("",
+    ImGui::SliderFloat("  ",
                     m_shaderSettingsParams->colorIntensityRef(),
                     ShaderSettingsParams::COLOR_INTENSITY_MIN,
                     ShaderSettingsParams::COLOR_INTENSITY_MAX);

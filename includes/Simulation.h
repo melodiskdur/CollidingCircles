@@ -47,6 +47,7 @@
 #include "PhysicsSettingsMenu.h"
 #include "PhysicsSettingsParams.h"
 #include "FlowControlParams.h"
+#include "CircleCreator.h"
 
 class Simulation
 {
@@ -81,13 +82,13 @@ private:
 
 private:
     GLFWwindow*                                 m_window{};
-    std::deque<CircleObject>                    m_newCircles{};
     std::shared_ptr<View>                       m_view{};
     std::shared_ptr<World>                      m_world{};
     std::shared_ptr<TimeFlow>                   m_timeFlow{};
     std::shared_ptr<InputManager>               m_inputManager{};
     std::shared_ptr<UserInput>                  m_userInput{};
     std::shared_ptr<SettingsWindow>             m_settingsWindow{};
+    std::shared_ptr<CircleCreator>              m_circleCreator{};
     std::shared_ptr<CircleCreatorSettings>      m_creatorSettings{};
     std::shared_ptr<ShaderSettingsParams>       m_shaderSettingsParams{};
     std::shared_ptr<PhysicsSettingsParams>      m_physicsParams{};

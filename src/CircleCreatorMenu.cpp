@@ -20,6 +20,10 @@ void CircleCreatorMenu::draw()
     drawMassSelector();
     verticalSpacing(3);
     drawStationaryCheckBox();
+    verticalSpacing(5);
+    drawGeneratorHeader();
+    verticalSpacing(3);
+    drawGeneratorType();
     verticalSpacing(3);
     drawNumCircles();
 }
@@ -67,4 +71,22 @@ void CircleCreatorMenu::drawStationaryCheckBox()
 void CircleCreatorMenu::drawNumCircles()
 {
     ImGui::Text("Number of circle: %d", *m_circleCreatorSettings->numCirclesRef());
+}
+
+void CircleCreatorMenu::drawGeneratorHeader()
+{
+    ImGui::Text(m_generatorTypeHeader.c_str());
+    ImGui::Separator();
+}
+
+void CircleCreatorMenu::drawGeneratorType()
+{
+    for (std::size_t i{0}; i < m_generators.size(); i++)
+    {
+        if (ImGui::Selectable(m_generators[i].c_str(), m_selectedGenerator == i))
+        {
+            *m_circleCreatorSettings->generatorTypeRef() = i;
+            m_selectedGenerator = i;
+        }
+    }
 }

@@ -4,15 +4,21 @@
 // as taken from Call Of Duty method, presented at ACM Siggraph 2014.
 // This particular method was customly designed to eliminate
 // "pulsating artifacts and temporal stability issues".
-
-// Remember to add bilinear minification filter for this texture!
-// Remember to use a floating-point texture format (for HDR)!
-// Remember to use edge clamping for this texture!
 uniform sampler2D srcTexture;
 uniform vec2 srcResolution;
 
 in vec2 texCoord;
 layout (location = 0) out vec4 downsample_out;
+
+const int ARRAY_SIZE = 13;
+const vec3 downsampleKernel[ARRAY_SIZE] = vec3[]
+(
+    vec3(-2.0, 2.0, 0.03125), vec3(0.0, 2.0, 0.0625), vec3(2.0, 2.0, 0.03125),
+    vec3(-1.0, 1.0, 0.125), vec3(1.0, 1.0, 0.125),
+    vec3(-2.0, 0.0, 0.0625), vec3(0.0, 0.0, 0.125), vec3(2.0, 0.0, 0.0625),
+    vec3(-1.0, -1.0, 0.125), vec3(1.0, -1.0, 0.125),
+    vec3(-2.0, -2.0, 0.03125), vec3(0.0, -2.0, 0.0625), vec3(2.0, -2.0, 0.03125)
+);
 
 void main()
 {
@@ -20,26 +26,12 @@ void main()
     float x = srcTexelSize.x;
     float y = srcTexelSize.y;
 
-    vec3 a = texture(srcTexture, vec2(texCoord.x - 2*x, texCoord.y + 2*y)).rgb;
-    vec3 b = texture(srcTexture, vec2(texCoord.x,       texCoord.y + 2*y)).rgb;
-    vec3 c = texture(srcTexture, vec2(texCoord.x + 2*x, texCoord.y + 2*y)).rgb;
-
-    vec3 d = texture(srcTexture, vec2(texCoord.x - 2*x, texCoord.y)).rgb;
-    vec3 e = texture(srcTexture, vec2(texCoord.x,       texCoord.y)).rgb;
-    vec3 f = texture(srcTexture, vec2(texCoord.x + 2*x, texCoord.y)).rgb;
-
-    vec3 g = texture(srcTexture, vec2(texCoord.x - 2*x, texCoord.y - 2*y)).rgb;
-    vec3 h = texture(srcTexture, vec2(texCoord.x,       texCoord.y - 2*y)).rgb;
-    vec3 i = texture(srcTexture, vec2(texCoord.x + 2*x, texCoord.y - 2*y)).rgb;
-
-    vec3 j = texture(srcTexture, vec2(texCoord.x - x, texCoord.y + y)).rgb;
-    vec3 k = texture(srcTexture, vec2(texCoord.x + x, texCoord.y + y)).rgb;
-    vec3 l = texture(srcTexture, vec2(texCoord.x - x, texCoord.y - y)).rgb;
-    vec3 m = texture(srcTexture, vec2(texCoord.x + x, texCoord.y - y)).rgb;
-
-    vec3 downsample = e*0.125;
-    downsample += (a+c+g+i)*0.03125;
-    downsample += (b+d+f+h)*0.0625;
-    downsample += (j+k+l+m)*0.125;
+    vec3 downsample = vec3(0.0);
+    for (int i = 0; i < ARRAY_SIZE; i++)
+    {
+        downsample += downsampleKernel[i].z * texture(srcTexture, vec2(
+            texCoord.x + downsampleKernel[i].x * x,
+            texCoord.y + downsampleKernel[i].y * y)).rgb;
+    }
     downsample_out = vec4(downsample, 1.0);
 }

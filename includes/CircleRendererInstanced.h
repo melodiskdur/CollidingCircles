@@ -11,7 +11,6 @@
 
 #include "CircleObject.h"
 #include "ShaderProgram.h"
-#include "CircleUniformBuffer.h"
 
 class CircleRendererInstanced
 {

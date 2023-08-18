@@ -7,6 +7,9 @@ in vec3 fColor;
 in float fRadius;
 in vec2 fPosition;
 
+uniform float glowIntensity;
+uniform float colorIntensity;
+
 void main()
 {
     float distanceSquared = dot(fPosition, fPosition);
@@ -14,8 +17,8 @@ void main()
     {
         FragColor = fColor;
 
-        float glowIntensity = 1.0 - smoothstep(0.11, 0.25, distanceSquared);
-        GlowColor = vec3(fColor + glowIntensity);
+        float glowFactor = 1.0 - smoothstep(0.11, 0.25, distanceSquared);
+        GlowColor = vec3(colorIntensity * fColor + glowIntensity * glowFactor);
     }
     else
         discard;

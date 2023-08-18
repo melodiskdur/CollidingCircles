@@ -28,6 +28,10 @@ void RendererManager::renderCircles(const std::vector<CircleRenderData>& renderD
     auto shaderProgram_cren{ m_circleRenderer->shaderProgram() };
 	glUseProgram(shaderProgram_cren->id());
 	shaderProgram_cren->updateUniformMatrix4fv("viewProjectionMatrix", viewProjection);
+	GLfloat glowIntensity{ *m_bloomRenderer->glowIntensityRef() };
+	GLfloat colorIntensity{ *m_bloomRenderer->colorIntensityRef() };
+	shaderProgram_cren->updateUniform1f("glowIntensity", glowIntensity);
+	shaderProgram_cren->updateUniform1f("colorIntensity", colorIntensity);
 	m_circleRenderer->render(renderData);
     m_bloomRenderer->render();
 }

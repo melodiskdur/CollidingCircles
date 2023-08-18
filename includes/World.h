@@ -18,6 +18,7 @@ public:
 
     void init();
     void updateWorldState(const float& timeStep);
+    void moveInsert(std::vector<CircleObject>& circles);
 
     void setWorldDimensions(const glm::vec2& dimensions);
 
