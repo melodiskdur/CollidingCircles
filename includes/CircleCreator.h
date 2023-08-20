@@ -23,6 +23,8 @@ public:
 
     void setCircleCreatorSettings(std::shared_ptr<CircleCreatorSettings> ccs) { m_circleCreatorSettings = ccs; };
 
+    std::shared_ptr<SpiralPatternGenerator> spiralPatternGen() { return m_spiralPatternGen; };
+
 private:
     void generateSingleCircle(glm::vec2&& worldPosition, glm::vec2&& initialVelocity);
 

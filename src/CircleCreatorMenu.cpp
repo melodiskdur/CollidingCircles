@@ -12,6 +12,8 @@ void CircleCreatorMenu::draw()
 {
     drawHead();
     verticalSpacing(3);
+    drawNumCircles();
+    verticalSpacing(4);
     indent(1);
     drawColorSelector();
     verticalSpacing(4);
@@ -25,7 +27,11 @@ void CircleCreatorMenu::draw()
     verticalSpacing(3);
     drawGeneratorType();
     verticalSpacing(3);
-    drawNumCircles();
+    switch (m_selectedGenerator)
+    {
+        case 0: break;
+        default: m_patternSubMenus[m_selectedGenerator - 1]->draw();
+    }
 }
 
 void CircleCreatorMenu::drawHead() const

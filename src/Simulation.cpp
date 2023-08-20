@@ -3,6 +3,7 @@
 #include "ShaderSettingsMenu.h"
 #include "CircleCreatorMenu.h"
 #include "CircleRenderData.h"
+#include "SpiralPatternSubMenu.h"
 #include <chrono>
 
 constexpr const GLuint INIT_WIDTH{ 1280 };
@@ -350,9 +351,12 @@ void Simulation::setupShaderSettingsMenuCallbacks(std::shared_ptr<ShaderSettings
 	shaderSettings->setShaderSettingsParams(m_shaderSettingsParams);
 }
 
-void Simulation::setupCircleCreatorMenuCallbacks(std::shared_ptr<CircleCreatorMenu> circleCreator)
+void Simulation::setupCircleCreatorMenuCallbacks(std::shared_ptr<CircleCreatorMenu> circleCreatorMenu)
 {
-	circleCreator->setCircleCreatorSettings(m_creatorSettings);
+	circleCreatorMenu->setCircleCreatorSettings(m_creatorSettings);
+	std::shared_ptr<SpiralPatternSubMenu> spiralSubMenu{ std::make_shared<SpiralPatternSubMenu>() };
+	spiralSubMenu->setSpiralPatternParams(m_circleCreator->spiralPatternGen()->spiralPatternParams());
+	circleCreatorMenu->addPatternSubMenu(spiralSubMenu);
 }
 
 void Simulation::setupPhysicsSettingsMenuCallbacks(std::shared_ptr<PhysicsSettingsMenu> physicsSettings)

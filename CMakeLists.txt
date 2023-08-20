@@ -21,6 +21,7 @@ set(SOURCE_FILES
      src/CircleCreator.cpp
      src/CircleCreatorMenu.cpp
      src/SpiralPatternGenerator.cpp
+     src/SpiralPatternSubMenu.cpp
      src/CollisionDetectionGrid.cpp
      src/PhysicsManager.cpp
      src/GravityCalculator.cpp

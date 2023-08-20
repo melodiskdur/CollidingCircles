@@ -9,19 +9,7 @@
 #include "glm/glm.hpp"
 
 #include "IPatternGenerator.h"
-
-struct SpiralPatternParams
-{
-    GLsizei                 m_numCirclesPerMainArm{ 40 };
-    GLsizei                 m_numCirclesPerSubArm{ 20 };
-    GLfloat                 m_discRadius{ 200.f };
-    GLsizei                 m_numMainArms{ 4 };
-    GLsizei                 m_numSubArms{ 2 };
-    GLfloat                 m_logConstant{ -0.35f };
-    GLfloat                 m_fuzzFactor{ 1.4 };
-    GLfloat                 m_initialRotationDeg{ 45.0f };
-    GLfloat                 m_armMaxDeg{ 360.f };
-};
+#include "SpiralPatternParams.h"
 
 class SpiralPatternGenerator : public IPatternGenerator
 {
