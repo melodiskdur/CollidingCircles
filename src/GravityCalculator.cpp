@@ -64,7 +64,7 @@ void GravityCalculator::barnesHutAlgorithm(std::shared_ptr<std::vector<CircleObj
 
 void GravityCalculator::barnesHutAlgorithmRecursive(CircleObject* circle, const std::shared_ptr<CircleQuadNode> node)
 {
-    if (!node || !(node->isOccupied())) return;
+    if (!node || node->m_num == 0) return;
     glm::vec2 forceDirection{ node->m_centerOfMass - circle->pos() };
     GLfloat distance{ glm::length(forceDirection) };
     if (node->m_num > 1)

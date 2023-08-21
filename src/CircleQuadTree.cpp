@@ -46,8 +46,10 @@ bool CircleQuadTree::insert(std::shared_ptr<CircleQuadNode> node, CircleObject* 
         // Recursive call with the appropriate subnode.
         insert(node->m_childNodes[node->whichSubnodeIndex(circle->pos())], circle);
     }
-    node->add(circle);
+    else
+        node->add(circle);
     node->m_num += 1;
+    return true;
 }
 
 void CircleQuadTree::clear(std::shared_ptr<CircleQuadNode> node, size_t level)

@@ -26,9 +26,8 @@ struct CircleQuadNode
         SUBNODE_INDEX index{ (pos.x > m_center.x) ? SUBNODE_INDEX::NE : SUBNODE_INDEX::NW };
         return (pos.y < m_center.y) ? (SUBNODE_INDEX)(index+2) : index;
     }
-    constexpr void add(CircleObject* c) { m_circle = c; m_isOccupied = true; };
-    constexpr void reset() { m_circle = nullptr; m_isOccupied = false; m_num = 0; };
-    constexpr const bool& isOccupied() { return m_isOccupied; };
+    constexpr void add(CircleObject* c) { m_circle = c; };
+    constexpr void reset() { m_circle = nullptr; m_num = 0; };
 
     glm::vec2                                       m_center{};
     GLfloat                                         m_size{};
@@ -37,5 +36,4 @@ struct CircleQuadNode
     CircleObject*                                   m_circle{};
     GLsizei                                         m_num{};
     std::array<std::shared_ptr<CircleQuadNode>, 4>  m_childNodes{};
-    bool                                            m_isOccupied{};
 };
