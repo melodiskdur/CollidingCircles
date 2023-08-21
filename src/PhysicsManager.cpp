@@ -1,5 +1,7 @@
 #include "PhysicsManager.h"
 
+#include <iostream>
+
 PhysicsManager::PhysicsManager()
 { /* ... */ }
 
@@ -14,7 +16,7 @@ void PhysicsManager::init()
 	m_collisionDetection->setGridDimensions({ 50, 50 });
 	m_collisionDetection->init();
     // CircleQuadTree.
-    m_quadTree = std::make_shared<CircleQuadTree>(glm::vec2(-10000.f), 10.f * 10000.f);
+    m_quadTree = std::make_shared<CircleQuadTree>(glm::vec2(0.f), 10.f * 1000.f);
     // Gravity.
 	m_gravity = std::make_shared<GravityCalculator>();
 	m_gravity->setGravitationalConstant(6.674e-4f);
@@ -37,6 +39,4 @@ void PhysicsManager::handlePhysics(std::shared_ptr<std::vector<CircleObject>> ci
     // Collision detection.
 	m_collisionDetection->storeCirclesIntoGridCells(circles);
 	m_collisionDetection->detectCollisions();
-	m_collisionDetection->resolveCollisions(circles);
-
 }

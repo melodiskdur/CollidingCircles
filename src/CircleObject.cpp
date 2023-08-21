@@ -5,7 +5,7 @@ CircleObject::CircleObject() { /* ... */ }
 
 
 CircleObject::CircleObject(glm::vec2&& pos) : m_pos(pos), m_prevPos(pos)
-{ /* ... */}
+{ /* ... */ }
 
 
 CircleObject::CircleObject(glm::vec2&& pos, glm::vec3&& color) : m_pos(pos), m_prevPos(pos), m_color(color)
@@ -15,7 +15,7 @@ CircleObject::CircleObject(glm::vec2&& pos, glm::vec3&& color, glm::vec2&& initi
     : m_pos(pos), m_color(color), m_velocityVec(initialVelocity), m_prevPos(pos - initialVelocity)
 { /* ... */ }
 
-CircleObject::~CircleObject() { /* ... */}
+CircleObject::~CircleObject() { }
 
 void CircleObject::mergeInto(CircleObject& collided)
 {

@@ -43,7 +43,7 @@ void RendererManager::renderLines(const std::vector<LineObject>& lines, const gl
 
 void RendererManager::renderGrid(const glm::mat4& model, const glm::mat4& viewProjection)
 {
-    if (m_gridRenderer->isGridEnabled())
+    if (m_shaderSettingsParams->isDisplayGridAvailable())
 	{
 		auto shaderProgram_grid{ m_gridRenderer->shaderProgram() };
 		glUseProgram( shaderProgram_grid->id());

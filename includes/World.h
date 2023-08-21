@@ -34,6 +34,8 @@ private:
                (pos.y > 0.0f && pos.y < m_worldDimensions.y);
     };
 
+    void clearDestroyedCircles();
+
 public:
     glm::vec2                                       DIMENSIONS_MIN{ 50.f };
 

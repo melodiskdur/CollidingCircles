@@ -26,12 +26,12 @@ void World::init()
 void World::updateWorldState(const float& timeStep)
 {
 	m_physicsManager->handlePhysics(m_circles, timeStep);
+    clearDestroyedCircles();
 }
 
 void World::moveInsert(std::vector<CircleObject>& circles)
 {
     m_circles->insert(m_circles->end(), std::make_move_iterator(circles.begin()), std::make_move_iterator(circles.end()));
-    // circles.erase(circles.begin(), circles.end());
     circles.clear();
 }
 
@@ -39,4 +39,12 @@ void World::setWorldDimensions(const glm::vec2& dimensions)
 {
     m_worldDimensions = { std::max(dimensions.x, DIMENSIONS_MIN.x),
                           std::max(dimensions.y, DIMENSIONS_MIN.y) };
+}
+
+void World::clearDestroyedCircles()
+{
+    m_circles->erase(std::remove_if(m_circles->begin(), m_circles->end(), [&](const CircleObject& circle) -> bool
+    {
+        return circle.toBeDestroyed() || !isWithinBoundaries(circle.pos());
+    }), m_circles->end());
 }

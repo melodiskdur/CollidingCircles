@@ -5,7 +5,7 @@
 
 void CircleQuadNode::calculateCenterOfMass()
 {
-    m_centerOfMass = glm::vec3(0.f);
+    m_centerOfMass = glm::vec2(0.f);
     m_totalMass = 0.f;
 
     if (m_num == 0) return;

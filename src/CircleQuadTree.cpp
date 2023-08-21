@@ -31,17 +31,23 @@ void CircleQuadTree::clearAll()
 bool CircleQuadTree::insert(std::shared_ptr<CircleQuadNode> node, CircleObject* circle)
 {
     if (!node) return false;
-    node->m_num += 1;
+
     // Place circle in subnode if node is already occupied.
-    if (node->isOccupied())
+    if (node->m_num > 0)
     {
         // Subdivide node if necessary.
         if (!node->m_childNodes[0])
             node->subdivide();
+
+        if (node->m_num == 1)
+        {
+            insert(node->m_childNodes[node->whichSubnodeIndex(node->m_circle->pos())], node->m_circle);
+        }
         // Recursive call with the appropriate subnode.
-        return insert(node->m_childNodes[node->whichSubnodeIndex(circle->pos())], circle);
+        insert(node->m_childNodes[node->whichSubnodeIndex(circle->pos())], circle);
     }
     node->add(circle);
+    node->m_num += 1;
 }
 
 void CircleQuadTree::clear(std::shared_ptr<CircleQuadNode> node, size_t level)

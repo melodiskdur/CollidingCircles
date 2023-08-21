@@ -152,6 +152,10 @@ void Simulation::render()
 	if (m_lines.size() > 0)
 		m_renderManager->renderLines(m_lines, viewProjectionMatrix);
 	m_renderManager->renderLines(m_worldBorder, viewProjectionMatrix);
+
+	// QuadTree visualizer.
+	// m_world->physicsManager()->circleQuadVisualizer()->addNodeLines();
+	// m_renderManager->renderLines(m_world->physicsManager()->circleQuadVisualizer()->lines(), viewProjectionMatrix);
 }
 
 void Simulation::renderImGui()
@@ -348,6 +352,7 @@ void Simulation::setupShaderSettingsMenuCallbacks(std::shared_ptr<ShaderSettings
 	m_shaderSettingsParams = std::make_shared<ShaderSettingsParams>(
 				m_renderManager->bloomRenderer()->glowIntensityRef(),
 				m_renderManager->bloomRenderer()->colorIntensityRef());
+	m_renderManager->setShaderSettingsParams(m_shaderSettingsParams);
 	shaderSettings->setShaderSettingsParams(m_shaderSettingsParams);
 }
 

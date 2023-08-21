@@ -28,6 +28,6 @@ public:
 private:
     GLfloat*            m_glowIntensityRef{ nullptr };
     GLfloat*            m_colorIntensityRef{ nullptr };
-    bool                m_displayGridAvailable{ true };
+    bool                m_displayGridAvailable{ nullptr };
     size_t              m_shaderType{ 1 };
 };

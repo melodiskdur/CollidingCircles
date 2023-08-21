@@ -24,7 +24,7 @@ void CircleQuadVisualizer::addNodeLines()
 
 void CircleQuadVisualizer::addNodeLinesRecursive(std::shared_ptr<CircleQuadNode> node, std::vector<LineObject>& lines)
 {
-    if (node->m_childNodes[0])
+    if (node->m_childNodes[0] && node->m_num > 0)
     {
         // Recursion.
         addNodeLinesRecursive(node->m_childNodes[SUBNODE_INDEX::NW], lines);

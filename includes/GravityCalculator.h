@@ -31,5 +31,5 @@ private:
 private:
     std::shared_ptr<CircleQuadTree>     m_quadTree{ };
     GLfloat                             m_G{ };
-    GLfloat                             m_barnesHutThreshold{ 1.f };
+    GLfloat                             m_barnesHutThreshold{ 0.8f };
 };

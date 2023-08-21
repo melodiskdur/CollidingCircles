@@ -19,13 +19,14 @@ GravityCalculator::~GravityCalculator()
 
 void GravityCalculator::applyForces(std::shared_ptr<std::vector<CircleObject>>& circles)
 {
-    //bruteForceAlgorithm(circles);
+    // bruteForceAlgorithm(circles);
     barnesHutAlgorithm(circles);
 }
 
 void GravityCalculator::updateVelAndPos(std::shared_ptr<std::vector<CircleObject>>& circles, const GLfloat& dt) const
 {
     std::for_each(circles->begin(), circles->end(), [&](CircleObject& circle) { verlet(circle, dt); });
+    // std::cout << "--------------------------------------------------\n";
 }
 
 void GravityCalculator::bruteForceAlgorithm(std::shared_ptr<std::vector<CircleObject>>& circles) const
@@ -51,11 +52,13 @@ void GravityCalculator::bruteForceAlgorithm(std::shared_ptr<std::vector<CircleOb
 void GravityCalculator::barnesHutAlgorithm(std::shared_ptr<std::vector<CircleObject>>& circles)
 {
     if (!m_quadTree->root()) return;
+    GLsizei i{0};
     for (CircleObject& circle: *circles)
     {
         if (circle.isStationary()) continue;
         circle.setForce(glm::vec2(0.f));
         barnesHutAlgorithmRecursive(&circle, m_quadTree->root());
+        i++;
     }
 }
 
@@ -96,4 +99,5 @@ void GravityCalculator::verlet(CircleObject& circle, const GLfloat& dt) const
     circle.setPos(pos + dt * circle.velocityVec() + 0.5f * circle.force() / circle.mass() * dt * dt);
     circle.setPrevPos(std::move(pos));
     circle.setVelocityVec( (circle.pos() - circle.prevPos()) / dt );
+    // std::cout << "Circle Force: " << glm::length(circle.force()) << " | Circle Velocity" << glm::length(circle.velocityVec()) << "\n";
 }

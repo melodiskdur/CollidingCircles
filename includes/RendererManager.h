@@ -9,6 +9,7 @@
 #include "LineRenderer.h"
 #include "GridRenderer.h"
 #include "BloomRenderer.h"
+#include "ShaderSettingsParams.h"
 
 class RendererManager
 {
@@ -22,6 +23,7 @@ public:
     void renderGrid(const glm::mat4& model, const glm::mat4& viewProjection);
 
     constexpr void setViewportSize(unsigned int& width, unsigned int& height) { m_viewportSize = {width, height}; };
+    inline void setShaderSettingsParams(std::shared_ptr<ShaderSettingsParams> ssp) { m_shaderSettingsParams = ssp; };
 
     inline std::shared_ptr<CircleRendererInstanced> circleRenderer() { return m_circleRenderer; };
     inline std::shared_ptr<BloomRenderer> bloomRenderer() { return m_bloomRenderer; };
@@ -30,6 +32,7 @@ public:
 
 private:
     glm::uvec2                                      m_viewportSize{};
+    std::shared_ptr<ShaderSettingsParams>           m_shaderSettingsParams{};
     std::shared_ptr<CircleRendererInstanced>        m_circleRenderer{};
     std::shared_ptr<BloomRenderer>                  m_bloomRenderer{};
     std::shared_ptr<LineRenderer>                   m_lineRenderer{};
