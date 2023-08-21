@@ -1,38 +1,11 @@
 cmake_minimum_required(VERSION 3.12)
 project(CollidingCircles)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
-set(SOURCE_FILES
-     src/main.cpp
-     src/CircleObject.cpp
-     src/LineObject.cpp
-     src/CircleRendererInstanced.cpp
-     src/LineRenderer.cpp
-     src/ShaderProgram.cpp
-     src/UserInput.cpp
-     src/InputManager.cpp
-     src/Simulation.cpp
-     src/SettingsWindow.cpp
-     src/FlowControlMenu.cpp
-     src/ShaderSettingsMenu.cpp
-     src/View.cpp
-     src/World.cpp
-     src/CircleCreator.cpp
-     src/CircleCreatorMenu.cpp
-     src/SpiralPatternGenerator.cpp
-     src/SpiralPatternSubMenu.cpp
-     src/CollisionDetectionGrid.cpp
-     src/PhysicsManager.cpp
-     src/GravityCalculator.cpp
-     src/GridRenderer.cpp
-     src/BloomRenderer.cpp
-     src/FrameTimeTracker.cpp
-     src/RendererManager.cpp
-     src/CircleQuadNode.cpp
-     src/CircleQuadTree.cpp
-     src/CircleQuadVisualizer.cpp
-     src/PhysicsSettingsMenu.cpp)
+set(SOURCE_DIR src)
+
+file(GLOB SOURCE_FILES "${SOURCE_DIR}/*.cpp")
 
 include_directories(
     ${CMAKE_SOURCE_DIR}/includes

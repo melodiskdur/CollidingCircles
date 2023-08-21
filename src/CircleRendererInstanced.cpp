@@ -162,15 +162,6 @@ void CircleRendererInstanced::initShaderProgram()
     m_shaderProgram->combineShadersIntoPair("simpleInstanced_vtx", "simpleInstanced_frag");
 	m_shaderProgram->setCurrentShaderPair("simpleInstanced_vtx", "simpleInstanced_frag");
 	m_shaderProgram->linkAndUse();
-
-    /*
-    m_outputShaderProgram = std::make_shared<ShaderProgram>();
-    m_outputShaderProgram->addShader(std::string{"simpleOutput_vtx"}, std::string("shader/simpleFinalizedBloom.vert"), GL_VERTEX_SHADER);
-	m_outputShaderProgram->addShader(std::string{"simpleOutput_frag"}, std::string("shader/simpleFinalizedBloom.frag"), GL_FRAGMENT_SHADER);
-    m_outputShaderProgram->combineShadersIntoPair("simpleOutput_vtx", "simpleOutput_frag");
-	m_outputShaderProgram->setCurrentShaderPair("simpleOutput_vtx", "simpleOutput_frag");
-	m_outputShaderProgram->linkAndUse();
-    */
 }
 
 void CircleRendererInstanced::calculateCircleBufferData(const std::vector<CircleRenderData>& circles)

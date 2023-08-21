@@ -5,7 +5,6 @@ BloomRenderer::BloomRenderer()
 
 BloomRenderer::BloomRenderer(const BloomRenderer& blr)
 {
-    this->m_gaussianShaderProgram = blr.m_gaussianShaderProgram;
     this->m_finalizedBloomShaderProgram = blr.m_finalizedBloomShaderProgram;
 }
 
@@ -223,13 +222,6 @@ void BloomRenderer::initFullscreenQuad()
 
 void BloomRenderer::initShaderPrograms()
 {
-    m_gaussianShaderProgram = std::make_shared<ShaderProgram>();
-    m_gaussianShaderProgram->addShader(std::string{"gaussian_vtx"}, std::string("shader/simpleInstancedGaussian.vert"), GL_VERTEX_SHADER);
-	m_gaussianShaderProgram->addShader(std::string{"gaussian_frag"}, std::string("shader/simpleInstancedGaussian.frag"), GL_FRAGMENT_SHADER);
-    m_gaussianShaderProgram->combineShadersIntoPair("gaussian_vtx", "gaussian_frag");
-	m_gaussianShaderProgram->setCurrentShaderPair("gaussian_vtx", "gaussian_frag");
-	m_gaussianShaderProgram->linkAndUse();
-
     m_finalizedBloomShaderProgram = std::make_shared<ShaderProgram>();
     m_finalizedBloomShaderProgram->addShader(std::string{"bloom_vtx"}, std::string("shader/simpleFinalizedBloom.vert"), GL_VERTEX_SHADER);
 	m_finalizedBloomShaderProgram->addShader(std::string{"bloom_frag"}, std::string("shader/simpleFinalizedBloom.frag"), GL_FRAGMENT_SHADER);
@@ -238,14 +230,14 @@ void BloomRenderer::initShaderPrograms()
 	m_finalizedBloomShaderProgram->linkAndUse();
 
     m_downsamplerShaderProgram = std::make_shared<ShaderProgram>();
-    m_downsamplerShaderProgram->addShader(std::string("downsample_vtx"), std::string("shader/simpleInstancedGaussian.vert"), GL_VERTEX_SHADER);
+    m_downsamplerShaderProgram->addShader(std::string("downsample_vtx"), std::string("shader/simpleFinalizedBloom.vert"), GL_VERTEX_SHADER);
     m_downsamplerShaderProgram->addShader(std::string("downsample_frag"), std::string("shader/downsampler.frag"), GL_FRAGMENT_SHADER);
     m_downsamplerShaderProgram->combineShadersIntoPair("downsample_vtx", "downsample_frag");
     m_downsamplerShaderProgram->setCurrentShaderPair("downsample_vtx", "downsample_frag");
     m_downsamplerShaderProgram->linkAndUse();
 
     m_upsamplerShaderProgram = std::make_shared<ShaderProgram>();
-    m_upsamplerShaderProgram->addShader(std::string("upsample_vtx"), std::string("shader/simpleInstancedGaussian.vert"), GL_VERTEX_SHADER);
+    m_upsamplerShaderProgram->addShader(std::string("upsample_vtx"), std::string("shader/simpleFinalizedBloom.vert"), GL_VERTEX_SHADER);
     m_upsamplerShaderProgram->addShader(std::string("upsample_frag"), std::string("shader/upsampler.frag"), GL_FRAGMENT_SHADER);
     m_upsamplerShaderProgram->combineShadersIntoPair("upsample_vtx", "upsample_frag");
     m_upsamplerShaderProgram->setCurrentShaderPair("upsample_vtx", "upsample_frag");
