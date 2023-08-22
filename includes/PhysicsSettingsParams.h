@@ -6,11 +6,12 @@
 
 struct PhysicsSettingsParams
 {
-    PhysicsSettingsParams(GLfloat* gravityConstantRef) : m_gravityConstantRef(gravityConstantRef)
+    PhysicsSettingsParams(GLfloat* gravityConstantRef, bool* colDetRef) : m_gravityConstantRef(gravityConstantRef), m_collisionDetectionEnabledRef(colDetRef)
     { /* ... */ };
 
     // Parameters.
     GLfloat*                        m_gravityConstantRef{};
+    bool*                           m_collisionDetectionEnabledRef{ nullptr };
 
     // Limits & constants.
     static constexpr GLfloat        GRAVITY_CONSTANT_MIN{ 6.674e-11f };

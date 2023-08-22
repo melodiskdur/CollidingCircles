@@ -54,6 +54,11 @@ bool CircleQuadTree::insert(std::shared_ptr<CircleQuadNode> node, CircleObject* 
 
 void CircleQuadTree::clear(std::shared_ptr<CircleQuadNode> node, size_t level)
 {
+    node->reset();
+    for (auto& child : node->m_childNodes)
+        child.reset();
+    return;
+
     if (!node) return;
     node->reset();
     if (!node->m_childNodes[0]) return;

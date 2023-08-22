@@ -11,6 +11,8 @@ void PhysicsSettingsMenu::draw()
     drawHead();
     verticalSpacing(3);
     indent(1);
+    drawCheckboxCollisionDetection();
+    verticalSpacing(3);
     drawGravityConstantSelector();
 }
 
@@ -31,4 +33,9 @@ void PhysicsSettingsMenu::drawGravityConstantSelector()
                         PhysicsSettingsParams::GRAVITY_CONSTANT_MAX,
                         "%.11f",
                         ImGuiSliderFlags_Logarithmic);
+}
+
+void PhysicsSettingsMenu::drawCheckboxCollisionDetection()
+{
+    ImGui::Checkbox(m_chkbxCollisionDetectionEnabled.c_str(), m_physicsSettingsParams->m_collisionDetectionEnabledRef);
 }

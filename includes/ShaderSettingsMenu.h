@@ -30,6 +30,7 @@ public:
 private:
     void drawHead() const;
     void drawCheckboxDisplayGrid();
+    void drawCheckboxDisplayQuadTree();
     void drawSelectShaderType();
 
     void drawSldrGlowIntensity();
@@ -41,6 +42,7 @@ private:
 private:
     std::string                                 m_name{ "Shader Settings" };
     std::string                                 m_chkbxDisplayGrid{ "Display Grid" };
+    std::string                                 m_chckbxDisplayQuadTree{ "Disply Barnes-Hut Quadtree (Note: Performance Heavy)" };
     std::string                                 m_slctShaderType{ "Shader Type" };
     std::vector<std::string>                    m_shaders{ "Simple", "Glow" };
     std::size_t                                 m_selected{ 1 };

@@ -28,6 +28,7 @@ public:
 private:
     void drawHead() const;
     void drawGravityConstantSelector();
+    void drawCheckboxCollisionDetection();
 
     constexpr void verticalSpacing(const std::size_t& n) const { for(auto i{0}; i < n; i++) ImGui::Spacing(); };
     constexpr void indent(const std::size_t& n) const { for (auto i{0}; i < n; i++) ImGui::Indent(); };
@@ -35,5 +36,6 @@ private:
 private:
     std::string                                 m_name{ "Physics Settings" };
     std::shared_ptr<PhysicsSettingsParams>      m_physicsSettingsParams{};
-    std::string                                 m_gravityHeader{ };
+    std::string                                 m_gravityHeader{ "Gravitational Constant" };
+    std::string                                 m_chkbxCollisionDetectionEnabled{ "Collision Detection (Circles Collide & Merge)" };
 };

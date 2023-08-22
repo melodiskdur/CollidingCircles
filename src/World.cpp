@@ -20,7 +20,7 @@ World::~World()
 void World::init()
 {
 	m_physicsManager = std::make_shared<PhysicsManager>();
-	m_physicsManager->init();
+	m_physicsManager->init(m_worldDimensions);
 }
 
 void World::updateWorldState(const float& timeStep)

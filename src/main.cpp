@@ -23,7 +23,7 @@
 
 int main()
 {
-	auto simulation{Simulation()};
+	auto simulation{ Simulation() };
 	simulation.init();
 	simulation.run();
 }

@@ -23,8 +23,15 @@ bool RendererManager::initRenderers()
 
 void RendererManager::renderCircles(const std::vector<CircleRenderData>& renderData, const glm::mat4& viewProjection)
 {
-    m_circleRenderer->setOutputFBO(m_bloomRenderer->inputFBO());
-	m_circleRenderer->setOutputFBOTextures(m_bloomRenderer->inputFBOSceneTex(), m_bloomRenderer->inputFBOBloomTex());
+	if (m_shaderSettingsParams->shaderType() == 0)
+	{
+		m_circleRenderer->setOutputFBO(0);
+	}
+	else
+	{
+		m_circleRenderer->setOutputFBO(m_bloomRenderer->inputFBO());
+		m_circleRenderer->setOutputFBOTextures(m_bloomRenderer->inputFBOSceneTex(), m_bloomRenderer->inputFBOBloomTex());
+	}
     auto shaderProgram_cren{ m_circleRenderer->shaderProgram() };
 	glUseProgram(shaderProgram_cren->id());
 	shaderProgram_cren->updateUniformMatrix4fv("viewProjectionMatrix", viewProjection);
@@ -33,7 +40,7 @@ void RendererManager::renderCircles(const std::vector<CircleRenderData>& renderD
 	shaderProgram_cren->updateUniform1f("glowIntensity", glowIntensity);
 	shaderProgram_cren->updateUniform1f("colorIntensity", colorIntensity);
 	m_circleRenderer->render(renderData);
-    m_bloomRenderer->render();
+    if (m_shaderSettingsParams->shaderType() == 1) m_bloomRenderer->render();
 }
 
 void RendererManager::renderLines(const std::vector<LineObject>& lines, const glm::mat4& viewProjection)

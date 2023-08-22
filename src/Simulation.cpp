@@ -8,7 +8,7 @@
 
 constexpr const GLuint INIT_WIDTH{ 1280 };
 constexpr const GLuint INIT_HEIGHT{ 720 };
-constexpr glm::vec2 WORLD_SIZE{ 10000.0f, 10000.0f };
+constexpr glm::vec2 WORLD_SIZE{ 50000.0f, 50000.0f };
 constexpr const float FRAME_LENGTH{ 1.0f / 60.0f };
 
 static GLuint rWidth{};
@@ -154,8 +154,11 @@ void Simulation::render()
 	m_renderManager->renderLines(m_worldBorder, viewProjectionMatrix);
 
 	// QuadTree visualizer.
-	// m_world->physicsManager()->circleQuadVisualizer()->addNodeLines();
-	// m_renderManager->renderLines(m_world->physicsManager()->circleQuadVisualizer()->lines(), viewProjectionMatrix);
+	if (m_shaderSettingsParams->isBarnesHutQuadTreeEnabled())
+	{
+		m_world->physicsManager()->circleQuadVisualizer()->addNodeLines();
+		m_renderManager->renderLines(m_world->physicsManager()->circleQuadVisualizer()->lines(), viewProjectionMatrix);
+	}
 }
 
 void Simulation::renderImGui()
@@ -215,10 +218,10 @@ void Simulation::renderImGui()
 [[nodiscard]] bool Simulation::initializeEnvironmentParams()
 {
 	m_view = std::make_shared<View>(glm::vec2(static_cast<GLfloat>(m_width), static_cast<GLfloat>(m_height)));
-	m_view->setPosition({-125.f, -125.f});
 	m_world = std::make_shared<World>();
 	m_world->setWorldDimensions(WORLD_SIZE);
 	m_world->init();
+	m_view->setPosition(m_world->worldCenter());
 	m_timeFlow = std::make_shared<TimeFlow>();
 	m_timeFlow->setDeltaTime(0.3f);
 
@@ -366,6 +369,8 @@ void Simulation::setupCircleCreatorMenuCallbacks(std::shared_ptr<CircleCreatorMe
 
 void Simulation::setupPhysicsSettingsMenuCallbacks(std::shared_ptr<PhysicsSettingsMenu> physicsSettings)
 {
-	m_physicsParams = std::make_shared<PhysicsSettingsParams>(m_world->physicsManager()->gravityCalculator()->gravityConstantRef());
+	m_physicsParams = std::make_shared<PhysicsSettingsParams>(
+						m_world->physicsManager()->gravityCalculator()->gravityConstantRef(),
+						m_world->physicsManager()->collisionDetectionEnabledRef());
 	physicsSettings->setPhysicsSettingsParams(m_physicsParams);
 }

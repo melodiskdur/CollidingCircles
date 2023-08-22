@@ -16,6 +16,7 @@ void ShaderSettingsMenu::draw()
     verticalSpacing(3);
     indent(1);
     drawCheckboxDisplayGrid();
+    drawCheckboxDisplayQuadTree();
     verticalSpacing(3);
     drawSelectShaderType();
 
@@ -41,6 +42,11 @@ void ShaderSettingsMenu::drawHead() const
 void ShaderSettingsMenu::drawCheckboxDisplayGrid()
 {
     ImGui::Checkbox(m_chkbxDisplayGrid.c_str(), m_shaderSettingsParams->displayGridAvailableRef());
+}
+
+void ShaderSettingsMenu::drawCheckboxDisplayQuadTree()
+{
+    ImGui::Checkbox(m_chckbxDisplayQuadTree.c_str(), m_shaderSettingsParams->displayBarnesHutQuadTreeRef());
 }
 
 void ShaderSettingsMenu::drawSelectShaderType()
