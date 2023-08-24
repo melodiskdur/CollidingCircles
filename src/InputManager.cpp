@@ -35,6 +35,15 @@ void InputManager::handleInputEvents()
         m_scroll = static_cast<GLfloat>(mouseInputEvent->scroll());
         chooseCallbackByMouseEventType(mouseInputEvent);
     }
+
+    while (auto& keyInputEvent{ m_userInput->popKeyInputEvent() })
+    {
+        GLfloat x{ static_cast<GLfloat>(keyInputEvent->mouseX()) };
+        GLfloat y{ static_cast<GLfloat>(keyInputEvent->mouseY()) };
+        m_cursorPos = glm::vec2(x, y);
+        chooseCallbackByKeyEventType(keyInputEvent);
+    }
+
     m_prevCursorPos = m_cursorPos;
 }
 
@@ -57,6 +66,16 @@ void InputManager::chooseCallbackByMouseEventType(const std::unique_ptr<MouseInp
             case MOUSE_EVENT_TYPE::SCROLL_DOWN:     onScroll();
                                                     break;
         };
+}
+
+void InputManager::chooseCallbackByKeyEventType(const std::unique_ptr<KeyInputEvent>& kie)
+{
+    switch (kie->inputType())
+    {
+        case KEY_INPUT_TYPE::PRESSED:   if (m_fKeyPressedCallbacks[kie->key()]) m_fKeyPressedCallbacks[kie->key()](m_cursorPos);
+        case KEY_INPUT_TYPE::HELD:      if (m_fKeyHeldCallbacks[kie->key()]) m_fKeyHeldCallbacks[kie->key()](m_cursorPos);
+        case KEY_INPUT_TYPE::RELEASED:  if (m_fKeyReleasedCallbacks[kie->key()]) m_fKeyReleasedCallbacks[kie->key()](m_cursorPos);
+    }
 }
 
 void InputManager::onLeftClickDrag()

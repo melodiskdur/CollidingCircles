@@ -28,6 +28,7 @@ public:
 private:
     void drawHead();
     void drawSliders();
+    void drawCheckboxes();
 
     constexpr void verticalSpacing(const std::size_t& n) const { for(auto i{0}; i < n; i++) ImGui::Spacing(); };
     constexpr void indent(const std::size_t& n) const { for (auto i{0}; i < n; i++) ImGui::Indent(); };

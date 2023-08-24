@@ -12,9 +12,10 @@ struct SpiralPatternParams
     GLsizei                 m_numMainArms{ 4 };
     GLsizei                 m_numSubArms{ 2 };
     GLfloat                 m_logConstant{ -0.35f };
-    GLfloat                 m_fuzzFactor{ 1.4 };
+    GLfloat                 m_displacementFactor{ 1.4 };
     GLfloat                 m_initialRotationDeg{ 45.0f };
     GLfloat                 m_armMaxDeg{ 360.f };
+    bool                    m_clockwiseRotation{ true };
 
     // Limits.
     static constexpr GLsizei      MAINARM_NUMCIRCLES_MIN{ 10 };
@@ -27,8 +28,8 @@ struct SpiralPatternParams
     static constexpr GLsizei      SUBARMS_NUM_MAX{ 8 };
     static constexpr GLfloat      LOG_CONSTANT_MIN{ -1.0f };
     static constexpr GLfloat      LOG_CONSTANT_MAX{ -0.05f };
-    static constexpr GLfloat      FUZZ_FACTOR_MIN{ 0.4f };
-    static constexpr GLfloat      FUZZ_FACOTR_MAX{ 2.0f };
+    static constexpr GLfloat      DISPLACMENT_FACTOR_MIN{ 1.0f };
+    static constexpr GLfloat      DISPLACEMENT_FACOTR_MAX{ 10.0f };
     static constexpr GLfloat      PATTERN_ROTATION_MAX{ 180.f };
     static constexpr GLfloat      SPIRAL_DEG_MIN{ 180.f };
     static constexpr GLfloat      SPIRAL_DEG_MAX{ 720.f };

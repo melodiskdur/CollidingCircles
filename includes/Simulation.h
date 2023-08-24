@@ -75,6 +75,7 @@ private:
 
     void setupMouseInputCallbacks();
     void setupScrollInputCallbacks();
+    void setupKeyInputCallbacks();
     void setupFlowControlMenuCallbacks(std::shared_ptr<FlowControlMenu> flowControl);
     void setupShaderSettingsMenuCallbacks(std::shared_ptr<ShaderSettingsMenu> shaderSettings);
     void setupCircleCreatorMenuCallbacks(std::shared_ptr<CircleCreatorMenu> circleCreator);

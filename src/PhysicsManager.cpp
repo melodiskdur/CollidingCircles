@@ -28,7 +28,6 @@ void PhysicsManager::init(const glm::vec2& worldDimensions)
 
 void PhysicsManager::handlePhysics(std::shared_ptr<std::vector<CircleObject>> circles, const float& timeStep)
 {
-
     // Build the quad tree.
     m_quadTree->clearAll();
     m_quadTree->insertAll(circles);

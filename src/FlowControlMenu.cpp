@@ -36,10 +36,9 @@ void FlowControlMenu::drawHead() const
 
 void FlowControlMenu::drawBtnState()
 {
-    if (ImGui::Button(m_isRunning ? m_btnStateRun.c_str() : m_btnStateStop.c_str(), ImVec2(80.0f, 0.0f)))
+    if (ImGui::Button(simIsRunning() ? m_btnStateRun.c_str() : m_btnStateStop.c_str(), ImVec2(80.0f, 0.0f)))
     {
         m_flowControlParams->m_simState = m_flowControlParams->m_simState == SIM_STATE::RUN ? SIM_STATE::STOP : SIM_STATE::RUN;
-        m_isRunning = !m_isRunning;
     }
 }
 
@@ -62,7 +61,6 @@ void FlowControlMenu::drawBtnStepForward()
 {
     if (ImGui::Button(m_btnStepForward.c_str()))
     {
-        m_isRunning = false;
         m_flowControlParams->m_simState = SIM_STATE::STEP;
     }
 }

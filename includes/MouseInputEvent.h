@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <memory>
 
 enum class MOUSE_EVENT_TYPE { LEFT_CLICK, LEFT_RELEASE, RIGHT_CLICK, RIGHT_RELEASE, SCROLL_UP, SCROLL_DOWN, MOVE };

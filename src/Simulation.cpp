@@ -101,9 +101,6 @@ void Simulation::run()
 
 		glfwSwapBuffers(m_window);
 
-		if (m_flowControlParams->m_simState == SIM_STATE::STEP)
-			m_flowControlParams->m_simState = SIM_STATE::STOP;
-
 		m_frameTimeTracker->waitForEndOfFrame();
 	}
 
@@ -125,6 +122,13 @@ void Simulation::updateSimulation()
 	{
 		m_timeFlow->updateTime();
 		m_world->updateWorldState(m_timeFlow->deltaTime());
+
+		if (m_flowControlParams->m_simState == SIM_STATE::STEP)
+		{
+			m_flowControlParams->m_simState = SIM_STATE::STOP;
+			m_timeFlow->setFlowDirection(1.0f);
+		}
+
 	}
 	*(m_creatorSettings->numCirclesRef()) = m_circles->size();
 }
@@ -253,6 +257,7 @@ void Simulation::renderImGui()
 
 	setupMouseInputCallbacks();
 	setupScrollInputCallbacks();
+	setupKeyInputCallbacks();
 
 	return true;
 }
@@ -339,6 +344,49 @@ void Simulation::setupScrollInputCallbacks()
 			GLfloat zoomVal{ zoom < 0 ? 0.90f : 1.10f };
 			m_view->zoom(zoomVal);
 		});
+}
+
+void Simulation::setupKeyInputCallbacks()
+{
+	m_inputManager->setKeyPressedCallback(GLFW_KEY_R, [=](const glm::vec2& cursorPos)
+	{
+		m_world->circles()->clear();
+		m_timeFlow->resetTime();
+	});
+
+	m_inputManager->setKeyPressedCallback(GLFW_KEY_SPACE, [=](const glm::vec2& cursorPos)
+	{
+		m_flowControlParams->m_simState = (m_flowControlParams->m_simState == SIM_STATE::RUN) ?
+											SIM_STATE::STOP : SIM_STATE::RUN;
+	});
+
+	m_inputManager->setKeyPressedCallback(GLFW_KEY_E, [=](const glm::vec2& cursorPos)
+	{
+		m_flowControlParams->m_simState = SIM_STATE::STEP;
+	});
+
+	m_inputManager->setKeyHeldCallback(GLFW_KEY_E, [=](const glm::vec2& cursorPos)
+	{
+		m_flowControlParams->m_simState = SIM_STATE::STEP;
+	});
+
+	m_inputManager->setKeyPressedCallback(GLFW_KEY_Q, [=](const glm::vec2& cursorPos)
+	{
+		if (m_timeFlow->currentTime() > 0.f)
+		{
+			m_flowControlParams->m_simState = SIM_STATE::STEP;
+			m_timeFlow->setFlowDirection(-1.0f);
+		}
+	});
+
+	m_inputManager->setKeyHeldCallback(GLFW_KEY_Q, [=](const glm::vec2& cursorPos)
+	{
+		if (m_timeFlow->currentTime() > 0.f)
+		{
+			m_flowControlParams->m_simState = SIM_STATE::STEP;
+			m_timeFlow->setFlowDirection(-1.0f);
+		}
+	});
 }
 
 void Simulation::setupFlowControlMenuCallbacks(std::shared_ptr<FlowControlMenu> flowControl)

@@ -28,7 +28,7 @@ public:
     constexpr glm::vec2 worldCenter() const { return 0.5f * m_worldDimensions; };
 
 private:
-    constexpr bool isWithinBoundaries(const glm::vec2& pos) const
+    constexpr bool isWithinWorldBoundaries(const glm::vec2& pos) const
     {
         return (pos.x > 0.0f && pos.x < m_worldDimensions.x) &&
                (pos.y > 0.0f && pos.y < m_worldDimensions.y);

@@ -45,6 +45,6 @@ void World::clearDestroyedCircles()
 {
     m_circles->erase(std::remove_if(m_circles->begin(), m_circles->end(), [&](const CircleObject& circle) -> bool
     {
-        return circle.toBeDestroyed() || !isWithinBoundaries(circle.pos());
+        return circle.toBeDestroyed() || !isWithinWorldBoundaries(circle.pos());
     }), m_circles->end());
 }

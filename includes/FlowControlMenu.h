@@ -37,6 +37,8 @@ private:
     constexpr void verticalSpacing(const std::size_t& n) const { for(auto i{0}; i < n; i++) ImGui::Spacing(); };
     constexpr void indent(const std::size_t& n) const { for (auto i{0}; i < n; i++) ImGui::Indent(); };
 
+    inline const bool simIsRunning() const { return m_flowControlParams->m_simState == SIM_STATE::RUN; };
+
 private:
     std::string                         m_name{ "Flow Control" };
     std::shared_ptr<FlowControlParams>  m_flowControlParams{};

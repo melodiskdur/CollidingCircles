@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <iostream>
 
-constexpr GLfloat MIN_DISTANCE{ 1e1f };
+constexpr GLfloat MIN_DISTANCE{ 0.01f };
 constexpr GLfloat MAX_DISTANCE{ 1e5f };
 
 GravityCalculator::GravityCalculator()
@@ -19,14 +19,12 @@ GravityCalculator::~GravityCalculator()
 
 void GravityCalculator::applyForces(std::shared_ptr<std::vector<CircleObject>>& circles)
 {
-    // bruteForceAlgorithm(circles);
     barnesHutAlgorithm(circles);
 }
 
 void GravityCalculator::updateVelAndPos(std::shared_ptr<std::vector<CircleObject>>& circles, const GLfloat& dt) const
 {
     std::for_each(circles->begin(), circles->end(), [&](CircleObject& circle) { verlet(circle, dt); });
-    // std::cout << "--------------------------------------------------\n";
 }
 
 void GravityCalculator::bruteForceAlgorithm(std::shared_ptr<std::vector<CircleObject>>& circles) const
@@ -42,7 +40,6 @@ void GravityCalculator::bruteForceAlgorithm(std::shared_ptr<std::vector<CircleOb
             if (&current == &other) return;
             glm::vec2 deltaPos{ other.pos() - current.pos() };
             GLfloat r2{ glm::dot(deltaPos, deltaPos) };
-            //if (r2 < MIN_DISTANCE) return;
             totalForceOnCurrent += (1.f/ std::max(std::min(r2, MAX_DISTANCE), MIN_DISTANCE) * m_G * current.mass() * other.mass()) * glm::normalize(deltaPos);
         });
         current.setForce(std::move(totalForceOnCurrent));
@@ -66,7 +63,7 @@ void GravityCalculator::barnesHutAlgorithmRecursive(CircleObject* circle, const 
 {
     if (!node || node->m_num == 0) return;
     glm::vec2 forceDirection{ node->m_centerOfMass - circle->pos() };
-    GLfloat distance{ glm::length(forceDirection) };
+    GLfloat distance{ std::max(glm::length(forceDirection), MIN_DISTANCE) };
     if (node->m_num > 1)
     {
         // Barnes Hut conditional, i.e is the node "close enough" to the current circle such
@@ -99,5 +96,4 @@ void GravityCalculator::verlet(CircleObject& circle, const GLfloat& dt) const
     circle.setPos(pos + dt * circle.velocityVec() + 0.5f * circle.force() / circle.mass() * dt * dt);
     circle.setPrevPos(std::move(pos));
     circle.setVelocityVec( (circle.pos() - circle.prevPos()) / dt );
-    // std::cout << "Circle Force: " << glm::length(circle.force()) << " | Circle Velocity" << glm::length(circle.velocityVec()) << "\n";
 }

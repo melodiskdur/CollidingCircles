@@ -51,7 +51,7 @@ private:
     std::string                                 m_stationaryHeader{ "Set Stationary" };
     std::string                                 m_numCirclesHeader{ "Number of circles" };
     std::string                                 m_generatorTypeHeader{ "Creation Type" };
-    std::vector<std::string>                    m_generators{ "Single Circle", "Galaxy Pattern" };
+    std::vector<std::string>                    m_generators{ "Single Circle", "Spiral Pattern" };
     GLsizei                                     m_selectedGenerator{ 0 };
     std::vector<std::shared_ptr<ISubMenu>>      m_patternSubMenus{  };
 };

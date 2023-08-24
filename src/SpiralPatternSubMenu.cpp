@@ -11,6 +11,8 @@ void SpiralPatternSubMenu::draw()
     if (!m_params) return;
     drawHead();
     verticalSpacing(3);
+    drawCheckboxes();
+    verticalSpacing(3);
     drawSliders();
 }
 
@@ -76,8 +78,13 @@ void SpiralPatternSubMenu::drawSliders()
 
     verticalSpacing(2);
 
-    ImGui::Text("Fuzz factor");
-    ImGui::SliderFloat("         ", &m_params->m_fuzzFactor,
-                            SpiralPatternParams::FUZZ_FACTOR_MIN,
-                            SpiralPatternParams::FUZZ_FACOTR_MAX);
+    ImGui::Text("Displacement factor");
+    ImGui::SliderFloat("         ", &m_params->m_displacementFactor,
+                            SpiralPatternParams::DISPLACMENT_FACTOR_MIN,
+                            SpiralPatternParams::DISPLACEMENT_FACOTR_MAX);
+}
+
+void SpiralPatternSubMenu::drawCheckboxes()
+{
+    ImGui::Checkbox("Clockwise rotation", &m_params->m_clockwiseRotation);
 }

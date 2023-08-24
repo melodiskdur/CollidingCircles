@@ -46,6 +46,21 @@ void UserInput::onMouseMoveEvent(GLFWwindow* window, double dx, double dy)
     this->push(MouseInputEvent(MOUSE_EVENT_TYPE::MOVE, dx, dy));
 }
 
+void UserInput::onKeyEvent(GLFWwindow* window, int key, int scanCode, int action, int mods)
+{
+    KEY_INPUT_TYPE inputType{ };
+    switch(action)
+    {
+        case GLFW_PRESS:    inputType = KEY_INPUT_TYPE::PRESSED; break;
+        case GLFW_REPEAT:   inputType = KEY_INPUT_TYPE::HELD; break;
+        case GLFW_RELEASE:  inputType = KEY_INPUT_TYPE::RELEASED; break;
+    }
+
+    double x, y;
+    glfwGetCursorPos(window, &x, &y);
+    this->push(KeyInputEvent(key, action, x, y, inputType));
+}
+
 std::unique_ptr<MouseInputEvent> UserInput::popMouseInputEvent()
 {
     if (m_mouseInputQueue.size() == 0)
@@ -53,6 +68,15 @@ std::unique_ptr<MouseInputEvent> UserInput::popMouseInputEvent()
 
     std::unique_ptr<MouseInputEvent> event{ std::make_unique<MouseInputEvent>(m_mouseInputQueue.front()) };
     m_mouseInputQueue.pop_front();
+    return event;
+}
+
+std::unique_ptr<KeyInputEvent> UserInput::popKeyInputEvent()
+{
+    if (m_keyInputQueue.empty())
+        return std::unique_ptr<KeyInputEvent>(nullptr);
+    std::unique_ptr<KeyInputEvent> event{ std::make_unique<KeyInputEvent>(m_keyInputQueue.front()) };
+    m_keyInputQueue.pop_front();
     return event;
 }
 
@@ -75,9 +99,15 @@ void UserInput::redirectCallbacks()
         static_cast<UserInput*>(glfwGetWindowUserPointer(window))->onMouseMoveEvent(window, dx, dy);
     }};
 
+    auto f_keyEvent{ [](GLFWwindow* window, int key, int scanCode, int action, int mods)
+    {
+        static_cast<UserInput*>(glfwGetWindowUserPointer(window))->onKeyEvent(window, key, scanCode, action, mods);
+    }};
+
     glfwSetMouseButtonCallback(m_window, f_mouseButtonEvent);
     glfwSetScrollCallback(m_window, f_mouseScrollEvent);
     glfwSetCursorPosCallback(m_window, f_mouseMoveEvent);
+    glfwSetKeyCallback(m_window, f_keyEvent);
 }
 
 std::pair<double, double> UserInput::cursorPos()
@@ -92,4 +122,13 @@ void UserInput::push(MouseInputEvent&& mouseInputEvent)
         m_mouseInputQueue.pop_front();
     }
     m_mouseInputQueue.push_back(mouseInputEvent);
+}
+
+void UserInput::push(KeyInputEvent&& keyInputEvent)
+{
+    while (m_keyInputQueue.size() >= INPUT_QUEUE_MAX)
+    {
+        m_keyInputQueue.pop_front();
+    }
+    m_keyInputQueue.push_back(keyInputEvent);
 }
