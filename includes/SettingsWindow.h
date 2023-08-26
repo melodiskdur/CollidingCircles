@@ -27,11 +27,18 @@ public:
     ~SettingsWindow();
 
     void draw();
+    void addMenu(std::shared_ptr<IMenu> menu) { m_tabs.push_back(menu); if (m_tabs.size() == 1) m_currentTabName = std::string(menu->name()); };
 
-    void addMenu(std::shared_ptr<IMenu> menu) { m_tabs.push_back(menu); };
+    void setCurrentTabMenu(const std::string& tabName);
+    void toggleWindowCollapsed();
+
+    inline const std::string& currentTabMenu() const { return m_currentTabName; };
+    constexpr bool isWindowCollapsed() const { return m_windowCollapsed; };
 
 private:
     void setup();
+
+    inline const bool isTabMenuAlreadySelected(const std::shared_ptr<IMenu>& menu) const { return std::string(menu->name()) == m_currentTabName; };
 
 private:
     float                                               m_width{DEFAULT_SWINDOW_WIDTH};
@@ -39,4 +46,8 @@ private:
     float                                               m_top{DEFAULT_SWINDOW_TOP};
     float                                               m_left{DEFAULT_SWINDOW_LEFT};
     std::vector<std::shared_ptr<IMenu>>                 m_tabs{};
+    bool                                                m_windowCollapsed{ false };
+    bool                                                m_newTabToggled{ false };
+    std::string                                         m_currentTabName{ "" };
+    bool                                                m_init{ false };
 };

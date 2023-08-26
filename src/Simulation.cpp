@@ -387,6 +387,31 @@ void Simulation::setupKeyInputCallbacks()
 			m_timeFlow->setFlowDirection(-1.0f);
 		}
 	});
+
+	m_inputManager->setKeyPressedCallback(GLFW_KEY_1, [=](const glm::vec2& cursorPos)
+	{
+		m_settingsWindow->setCurrentTabMenu("Flow Control");
+	});
+
+	m_inputManager->setKeyPressedCallback(GLFW_KEY_2, [=](const glm::vec2& cursorPos)
+	{
+		m_settingsWindow->setCurrentTabMenu("Shader Settings");
+	});
+
+	m_inputManager->setKeyPressedCallback(GLFW_KEY_3, [=](const glm::vec2& cursorPos)
+	{
+		m_settingsWindow->setCurrentTabMenu("Circle Creator");
+	});
+
+	m_inputManager->setKeyPressedCallback(GLFW_KEY_4, [=](const glm::vec2& cursorPos)
+	{
+		m_settingsWindow->setCurrentTabMenu("Physics Settings");
+	});
+
+	m_inputManager->setKeyPressedCallback(GLFW_KEY_TAB, [=](const::glm::vec2& cursorPos)
+	{
+		m_settingsWindow->toggleWindowCollapsed();
+	});
 }
 
 void Simulation::setupFlowControlMenuCallbacks(std::shared_ptr<FlowControlMenu> flowControl)

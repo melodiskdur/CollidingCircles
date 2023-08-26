@@ -31,7 +31,7 @@ public:
     static constexpr GLfloat CIRCLE_RADIUS_MAX{ 100.f };
 
     static constexpr GLfloat CIRCLE_MASS_MIN{ 1.f };
-    static constexpr GLfloat CIRCLE_MASS_MAX{ 200.f };
+    static constexpr GLfloat CIRCLE_MASS_MAX{ 1000.f };
 
 private:
     glm::vec3           m_circleColor{ 0.99f, 0.2f, 0.0f };

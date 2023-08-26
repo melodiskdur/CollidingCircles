@@ -53,7 +53,7 @@ void SpiralPatternGenerator::generateMainArm(const GLfloat& initialRotationDeg, 
                             m_center.y + expFactor * glm::sin(glm::radians(initialRotationDeg) + rotation * theta) + coordDisplacement(m_rgen) };
         glm::vec2 normalVector{ (position - m_center).y, -(position - m_center).x };
         GLfloat distance{ glm::length(position - m_center) };
-        glm::vec2 velocity{ rotation * normalVector / distance };
+        glm::vec2 velocity{ -rotation * normalVector / distance };
         m_generatorCallback(glm::vec2(position), glm::vec2(velocity));
     }
 }
@@ -71,7 +71,7 @@ void SpiralPatternGenerator::generateSubArm(const GLfloat& initialRotationDeg, c
                             m_center.y + expFactor * glm::sin(glm::radians(initialRotationDeg) + rotation * theta) + m_params->m_displacementFactor * coordDisplacement(m_rgen) };
         glm::vec2 normalVector{ (position - m_center).y, -(position - m_center).x };
         GLfloat distance{ glm::length(position - m_center) };
-        glm::vec2 velocity{ rotation * normalVector / distance };
+        glm::vec2 velocity{ -rotation * normalVector / distance };
         m_generatorCallback(glm::vec2(position), glm::vec2(velocity));
     }
 }

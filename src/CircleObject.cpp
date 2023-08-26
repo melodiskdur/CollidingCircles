@@ -21,7 +21,10 @@ void CircleObject::mergeInto(CircleObject& collided)
 {
     m_radius += 0.25f * collided.m_radius;
     if (!m_stationary)
-        m_velocityVec += collided.m_mass * collided.m_velocityVec / m_mass;
+    {
+        glm::vec2 totalMomentum{ m_mass * m_velocityVec + collided.m_mass * collided.m_velocityVec };
+        m_velocityVec = totalMomentum / (m_mass + collided.m_mass);
+    }
     m_mass += collided.m_mass;
     m_color += 0.05f * glm::normalize(collided.m_color);
     collided.setToDestroy();
