@@ -19,6 +19,10 @@ struct BloomMipmap
     glm::vec2       m_texSize{};
 };
 
+/*
+Implementation of the "Physics Based Bloom" rendering model presented here:
+https://learnopengl.com/Guest-Articles/2022/Phys.-Based-Bloom
+*/
 class BloomRenderer
 {
 public:

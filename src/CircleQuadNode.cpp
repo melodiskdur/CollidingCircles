@@ -2,6 +2,7 @@
 
 #include <map>
 #include <iostream>
+#include <algorithm>
 
 void CircleQuadNode::calculateCenterOfMass()
 {
@@ -10,7 +11,7 @@ void CircleQuadNode::calculateCenterOfMass()
 
     if (m_num == 0) return;
 
-    if (m_num > 1)
+    if (m_num > 1 && m_level < CircleQuadNode::NODE_DEPTH_MAX)
     {
         for (auto& childNode : m_childNodes)
         {
@@ -18,7 +19,7 @@ void CircleQuadNode::calculateCenterOfMass()
             m_totalMass += childNode->m_totalMass;
             m_centerOfMass += childNode->m_totalMass * childNode->m_centerOfMass;
         }
-        m_centerOfMass /= m_totalMass;
+        m_centerOfMass /= std::max(m_totalMass, 0.05f);
     }
     else
     {
@@ -42,5 +43,6 @@ void CircleQuadNode::subdivide()
         m_childNodes[subEntry.first] = std::make_shared<CircleQuadNode>();
         m_childNodes[subEntry.first]->m_center = subEntry.second;
         m_childNodes[subEntry.first]->m_size = 0.5f * m_size;
+        m_childNodes[subEntry.first]->m_level = m_level + 1;
     }
 }

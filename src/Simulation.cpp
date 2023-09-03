@@ -128,7 +128,6 @@ void Simulation::updateSimulation()
 			m_flowControlParams->m_simState = SIM_STATE::STOP;
 			m_timeFlow->setFlowDirection(1.0f);
 		}
-
 	}
 	*(m_creatorSettings->numCirclesRef()) = m_circles->size();
 }

@@ -29,6 +29,7 @@ struct CircleQuadNode
     constexpr void add(CircleObject* c) { m_circle = c; };
     constexpr void reset() { m_circle = nullptr; m_num = 0; };
 
+    static constexpr GLsizei NODE_DEPTH_MAX{ 50 };
     glm::vec2                                       m_center{};
     GLfloat                                         m_size{};
     glm::vec2                                       m_centerOfMass{};
@@ -36,4 +37,5 @@ struct CircleQuadNode
     CircleObject*                                   m_circle{};
     GLsizei                                         m_num{};
     std::array<std::shared_ptr<CircleQuadNode>, 4>  m_childNodes{};
+    GLuint                                          m_level{0};
 };

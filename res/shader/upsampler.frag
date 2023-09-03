@@ -1,7 +1,9 @@
 #version 330 core
 
-// This shader performs upsampling on a texture,
-// as taken from Call Of Duty method, presented at ACM Siggraph 2014.
+/*
+Implementation of the upsampler for physics based bloom rendering,
+full details here: https://learnopengl.com/Guest-Articles/2022/Phys.-Based-Bloom.
+*/
 uniform sampler2D srcTexture;
 uniform float filterRadius;
 

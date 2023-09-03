@@ -9,3 +9,6 @@ cd build
 
 # Build the project
 cmake --build . --config Release
+
+# Navigate to root.
+cd ..

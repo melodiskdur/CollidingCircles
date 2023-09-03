@@ -1,9 +1,9 @@
 #version 330 core
 
-// This shader performs downsampling on a texture,
-// as taken from Call Of Duty method, presented at ACM Siggraph 2014.
-// This particular method was customly designed to eliminate
-// "pulsating artifacts and temporal stability issues".
+/*
+Implementation of the downsampler for physics based bloom rendering,
+full details here: https://learnopengl.com/Guest-Articles/2022/Phys.-Based-Bloom.
+*/
 uniform sampler2D srcTexture;
 uniform vec2 srcResolution;
 

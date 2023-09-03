@@ -36,9 +36,10 @@ bool CircleQuadTree::insert(std::shared_ptr<CircleQuadNode> node, CircleObject* 
     if (node->m_num > 0)
     {
         // Subdivide node if necessary.
-        if (!node->m_childNodes[0])
+        if (!node->m_childNodes[0] && node->m_level < CircleQuadNode::NODE_DEPTH_MAX)
+        {
             node->subdivide();
-
+        }
         if (node->m_num == 1)
         {
             insert(node->m_childNodes[node->whichSubnodeIndex(node->m_circle->pos())], node->m_circle);
