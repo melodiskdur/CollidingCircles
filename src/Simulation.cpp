@@ -4,6 +4,7 @@
 #include "CircleCreatorMenu.h"
 #include "CircleRenderData.h"
 #include "SpiralPatternSubMenu.h"
+#include "InstructionsMenu.h"
 #include <chrono>
 
 constexpr const GLuint INIT_WIDTH{ 1280 };
@@ -274,6 +275,10 @@ void Simulation::renderImGui()
 [[nodiscard]] bool Simulation::initializeSettingsMenus()
 {
 	m_settingsWindow = std::make_shared<SettingsWindow>(SettingsWindow());
+	// Instructions.
+	std::shared_ptr<InstructionsMenu> instructionsMenu{ std::make_shared<InstructionsMenu>() };
+	setupInstructionsMenu(instructionsMenu);
+	m_settingsWindow->addMenu(instructionsMenu);
 	// FlowControl.
 	std::shared_ptr<FlowControlMenu> flowControl{ std::make_shared<FlowControlMenu>() };
 	m_flowControlParams = std::make_shared<FlowControlParams>(m_timeFlow->timeReference(), m_timeFlow->deltaTimeReference());
@@ -389,20 +394,25 @@ void Simulation::setupKeyInputCallbacks()
 
 	m_inputManager->setKeyPressedCallback(GLFW_KEY_1, [=](const glm::vec2& cursorPos)
 	{
-		m_settingsWindow->setCurrentTabMenu("Flow Control");
+		m_settingsWindow->setCurrentTabMenu("Instructions Menu");
 	});
 
 	m_inputManager->setKeyPressedCallback(GLFW_KEY_2, [=](const glm::vec2& cursorPos)
 	{
-		m_settingsWindow->setCurrentTabMenu("Shader Settings");
+		m_settingsWindow->setCurrentTabMenu("Flow Control");
 	});
 
 	m_inputManager->setKeyPressedCallback(GLFW_KEY_3, [=](const glm::vec2& cursorPos)
 	{
-		m_settingsWindow->setCurrentTabMenu("Circle Creator");
+		m_settingsWindow->setCurrentTabMenu("Shader Settings");
 	});
 
 	m_inputManager->setKeyPressedCallback(GLFW_KEY_4, [=](const glm::vec2& cursorPos)
+	{
+		m_settingsWindow->setCurrentTabMenu("Circle Creator");
+	});
+
+	m_inputManager->setKeyPressedCallback(GLFW_KEY_5, [=](const glm::vec2& cursorPos)
 	{
 		m_settingsWindow->setCurrentTabMenu("Physics Settings");
 	});
@@ -445,4 +455,17 @@ void Simulation::setupPhysicsSettingsMenuCallbacks(std::shared_ptr<PhysicsSettin
 						m_world->physicsManager()->gravityCalculator()->gravityConstantRef(),
 						m_world->physicsManager()->collisionDetectionEnabledRef());
 	physicsSettings->setPhysicsSettingsParams(m_physicsParams);
+}
+
+void Simulation::setupInstructionsMenu(std::shared_ptr<InstructionsMenu> instructionsMenu)
+{
+	instructionsMenu->addInstructionsPair("Start/Pause", "Space");
+	instructionsMenu->addInstructionsPair("Simulation Step Forward", "E");
+	instructionsMenu->addInstructionsPair("Simulation Step Backward", "Q");
+	instructionsMenu->addInstructionsPair("Reset Simulation", "R");
+	instructionsMenu->addInstructionsPair("Move", "Right-click + Drag");
+	instructionsMenu->addInstructionsPair("Zoom", "Scroll");
+	instructionsMenu->addInstructionsPair("Create Circles", "Left-click + Drag + Release");
+	instructionsMenu->addInstructionsPair("Switch Menu Tab", "1, 2, 3, 4, 5 ...");
+	instructionsMenu->addInstructionsPair("Minimize Menu Window", "Tab");
 }

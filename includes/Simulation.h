@@ -48,6 +48,7 @@
 #include "PhysicsSettingsParams.h"
 #include "FlowControlParams.h"
 #include "CircleCreator.h"
+#include "InstructionsMenu.h"
 
 class Simulation
 {
@@ -80,6 +81,7 @@ private:
     void setupShaderSettingsMenuCallbacks(std::shared_ptr<ShaderSettingsMenu> shaderSettings);
     void setupCircleCreatorMenuCallbacks(std::shared_ptr<CircleCreatorMenu> circleCreator);
     void setupPhysicsSettingsMenuCallbacks(std::shared_ptr<PhysicsSettingsMenu> physicsSettings);
+    void setupInstructionsMenu(std::shared_ptr<InstructionsMenu> instructionsMenu);
 
 private:
     GLFWwindow*                                 m_window{};
